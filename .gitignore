@@ -1,0 +1,19 @@
+# Local runtime data
+data/
+data.json
+*.local.json
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Build artifacts
+dist/
+coverage/
