@@ -1,5 +1,16 @@
 # 更新日志 / Changelog
 
+## v7.1 · 2026-05-29
+
+- 修复 normalizeLedgerSeeds 公式 double-count bug（v3 数据迁移自愈）
+- Currency 千分位格式化（Intl.NumberFormat ¥1,234.56）
+- 柱状图：最小高度 8px + 对数轴自动/手动切换
+- 记账防呆风控：大额确认弹窗（¥5000+）
+- 前后端双写同步：saveState Push + loadState Pull
+- i18n 新增：logScale / linearScale / logScaleHint / largeAmountWarning
+- 修复账户表单按钮事件委托
+
+
 ## v7.0 · 2026-05-29
 
 - 删除 v1 代码，v2 提升为项目主体

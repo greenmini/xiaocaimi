@@ -14,7 +14,7 @@ const LEGACY_MODULE_KEYS = [
 
 const DEFAULT_STATE = {
   schema: 'xiaocaimi-v2',
-  version: 1,
+  version: 3,
   updatedAt: null,
   finance: {
     assets: [
@@ -65,6 +65,20 @@ function safeJson(raw) {
   try { return raw ? JSON.parse(raw) : null; } catch { return null; }
 }
 
+function round2(val) {
+  return Math.round((Number(val) || 0) * 100) / 100;
+}
+
+function migrateFinanceSeeds(state) {
+  (state.finance.assets || []).forEach(a => {
+    delete a.openingBalance;
+  });
+  (state.finance.funds || []).forEach(f => {
+    delete f.openingValue;
+    delete f.openingCost;
+  });
+}
+
 function uid(prefix) {
   return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -77,6 +91,7 @@ function normalize(snapshot) {
     Object.assign(next.finance, snapshot.finance || {});
     Object.assign(next.modules, snapshot.modules || {});
     next.updatedAt = snapshot.updatedAt || null;
+    if ((snapshot.version || 0) < 3) migrateFinanceSeeds(next);
     return next;
   }
 
@@ -91,6 +106,7 @@ function normalize(snapshot) {
     categoryBudgets: legacy.categoryBudgets || {},
     settings: legacy.settings || {},
   });
+  migrateFinanceSeeds(next);
 
   if (snapshot.modules) {
     next.modules.contacts = snapshot.modules['finance-os-contacts'] || [];
@@ -120,8 +136,10 @@ function loadLegacySnapshot() {
 }
 
 export function loadState() {
-  state = normalize(safeJson(localStorage.getItem(STORAGE_KEY)) || loadLegacySnapshot());
+  const local = safeJson(localStorage.getItem(STORAGE_KEY)) || loadLegacySnapshot();
+  state = normalize(local);
   saveState({ silent: true });
+  if (!local) tryPull();
   return state;
 }
 
@@ -130,10 +148,53 @@ export function getState() {
   return state;
 }
 
+let syncTimer = null;
+const SYNC_DEBOUNCE = 2000;
+
+function syncConfig() {
+  const s = state?.finance?.settings || {};
+  return { url: s.syncServerUrl || '', token: s.syncToken || '' };
+}
+
+async function pushToServer() {
+  if (!state) return;
+  const { url, token } = syncConfig();
+  const base = url || window.location.origin;
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  try {
+    const resp = await fetch(base + '/api/data', { method: 'POST', headers, body: JSON.stringify(state) });
+    if (resp.ok) state._lastSync = Date.now();
+  } catch { /* network unavailable */ }
+}
+
+function schedulePush() {
+  if (!state) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushToServer, SYNC_DEBOUNCE);
+}
+
+async function tryPull() {
+  const { url, token } = syncConfig();
+  const base = url || window.location.origin;
+  const headers = {};
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  try {
+    const resp = await fetch(base + '/api/data', { headers });
+    if (!resp.ok) return;
+    const serverData = await resp.json();
+    if (!serverData?.finance?.transactions?.length) return;
+    state = normalize(serverData);
+    saveState({ silent: true });
+    subscribers.forEach(fn => fn(state));
+  } catch { /* network unavailable */ }
+}
+
 export function saveState(options = {}) {
   state.updatedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   if (!options.silent) subscribers.forEach(fn => fn(state));
+  schedulePush();
 }
 
 export function subscribe(fn) {

@@ -133,6 +133,10 @@ const dictionaries = {
     netFlow: '净现金流',
     categoryShare: '占比',
     noTrendData: '暂无趋势数据',
+    logScale: '对数轴',
+    linearScale: '线性轴',
+    logScaleHint: '已自动启用对数轴',
+    largeAmountWarning: '单笔金额较大，确认录入？',
     noCategoryData: '暂无分类数据',
 
     catFood: '餐饮',
@@ -416,6 +420,10 @@ const dictionaries = {
     netFlow: 'Net Cash Flow',
     categoryShare: 'Share',
     noTrendData: 'No trend data',
+    logScale: 'Log',
+    linearScale: 'Linear',
+    logScaleHint: 'Log scale auto-enabled',
+    largeAmountWarning: 'Large transaction – confirm?',
     noCategoryData: 'No category data',
 
     catFood: 'Food',

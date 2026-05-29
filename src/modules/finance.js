@@ -653,24 +653,38 @@ function renderTrendPanel(months) {
   `;
 }
 
+function chartBar(label, value, max, tone) {
+  const v = money(value);
+  const ratio = max > 0 ? v / max : 0;
+  const height = Math.max(8, Math.round(ratio * 114));
+  return `<span class="chart-tip bar ${tone}" style="height:${height}px" data-tooltip="${label}: ${currency(v)}"></span>`;
+}
+
 function renderBarPanel(months) {
-  const max = Math.max(...months.flatMap(month => [month.income, month.expense]), 1);
+  const allValues = months.flatMap(m => [m.income, m.expense]);
+  const max = Math.max(...allValues, 1);
+  const minNonZero = Math.min(...allValues.filter(v => v > 0), max);
+  const skew = max / (minNonZero || 0.01);
+  const tooSkewed = skew > 40;
+  const useLog = tooSkewed || window.__chartLogScale;
+  const effectiveMax = useLog ? Math.log10(max + 1) : max;
   const hasData = months.some(month => month.income || month.expense);
   return html`
     <section class="card chart-card">
       <div class="chart-head">
         <div>
           <h3>${t('incomeVsExpense')}</h3>
-          <p>${t('sixMonthTrend')}</p>
+          <p>${t('sixMonthTrend')}${tooSkewed ? html` · <em>${t('logScaleHint')}</em>` : ''}</p>
         </div>
+        ${tooSkewed ? '' : `<button class="actions-toggle" data-action="toggle-chart-scale" style="font-size:11px;padding:2px 8px;border:1px solid var(--border);background:var(--surface);color:var(--ink-dim);border-radius:var(--r-xs);cursor:pointer">${useLog ? t('linearScale') : t('logScale')}</button>`}
       </div>
       ${hasData ? html`
         <div class="bar-chart" role="img" aria-label="${t('incomeVsExpense')}">
           ${months.map(month => html`
             <div class="bar-group">
               <div class="bar-pair">
-                ${chartBar(t('income'), month.income, max, 'income')}
-                ${chartBar(t('expense'), month.expense, max, 'expense')}
+                ${chartBarLog(t('income'), month.income, effectiveMax, useLog, 'income')}
+                ${chartBarLog(t('expense'), month.expense, effectiveMax, useLog, 'expense')}
               </div>
               <span>${month.label}</span>
             </div>
@@ -682,9 +696,12 @@ function renderBarPanel(months) {
   `;
 }
 
-function chartBar(label, value, max, tone) {
-  const height = Math.max(4, Math.round((money(value) / max) * 118));
-  return `<span class="chart-tip bar ${tone}" style="height:${height}px" data-tooltip="${label}: ${currency(value)}"></span>`;
+function chartBarLog(label, value, effectiveMax, useLog, tone) {
+  const v = money(value);
+  const scaled = useLog ? (v > 0 ? Math.log10(v + 1) : 0) : v;
+  const ratio = effectiveMax > 0 ? scaled / effectiveMax : 0;
+  const height = Math.max(8, Math.round(ratio * 114));
+  return `<span class="chart-tip bar ${tone}" style="height:${height}px" data-tooltip="${label}: ${currency(v)}"></span>`;
 }
 
 function renderLineChart(months) {
@@ -759,6 +776,11 @@ export function bindFinanceActions(event) {
   if (event.type === 'submit' && form?.dataset.action === 'add-transaction') {
     event.preventDefault();
     const value = readForm(form);
+    const amount = Math.abs(money(value.amount));
+    const WARN_THRESHOLD = 5000;
+    if (amount >= WARN_THRESHOLD) {
+      if (!confirm(t('largeAmountWarning') + '\n' + currency(amount))) return true;
+    }
     update(state => {
       syncLedgerBalances(state);
       const selectedAccount = findAccount(state.finance.assets, value.accountId) || state.finance.assets[0] || null;
@@ -921,6 +943,10 @@ export function bindFinanceActions(event) {
 
   if (action === 'toggle-account-forms') {
     accountFormsExpanded = !accountFormsExpanded;
+    return true;
+  }
+  if (action === 'toggle-chart-scale') {
+    window.__chartLogScale = !window.__chartLogScale;
     return true;
   }
   if (action === 'set-account-tab') {

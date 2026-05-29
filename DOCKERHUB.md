@@ -6,23 +6,27 @@ A local-first personal finance and life-management dashboard for NAS, home serve
 
 ## 最新版本 / Latest Release
 
-**v7.0 · 2026-05-29**
+**v7.1 · 2026-05-29**
 
 本版重点更新：
 
-- 删除 v1 代码，v2 提升为项目主体
-- 架构重构：src/core/ 统一框架层，src/modules/ 业务模块
-- 路径修复：Dockerfile、sync_server、entrypoint 移除 v2 引用
-- 代码优化：修复 inline onclick 为 data-action 事件委托
-- 翻译补全：新增 accounts key 中英文翻译
+- 修复 normalizeLedgerSeeds 公式 double-count bug（v3 数据迁移自愈）
+- Currency 千分位格式化（Intl.NumberFormat ¥1,234.56）
+- 柱状图：最小高度 8px + 对数轴自动/手动切换
+- 记账防呆风控：大额确认弹窗（¥5000+）
+- 前后端双写同步：saveState Push + loadState Pull
+- i18n 新增：logScale / linearScale / logScaleHint / largeAmountWarning
+- 修复账户表单按钮事件委托
 
 Highlights:
 
-- 删除 v1 代码，v2 提升为项目主体
-- 架构重构：src/core/ 统一框架层，src/modules/ 业务模块
-- 路径修复：Dockerfile、sync_server、entrypoint 移除 v2 引用
-- 代码优化：修复 inline onclick 为 data-action 事件委托
-- 翻译补全：新增 accounts key 中英文翻译
+- 修复 normalizeLedgerSeeds 公式 double-count bug（v3 数据迁移自愈）
+- Currency 千分位格式化（Intl.NumberFormat ¥1,234.56）
+- 柱状图：最小高度 8px + 对数轴自动/手动切换
+- 记账防呆风控：大额确认弹窗（¥5000+）
+- 前后端双写同步：saveState Push + loadState Pull
+- i18n 新增：logScale / linearScale / logScaleHint / largeAmountWarning
+- 修复账户表单按钮事件委托
 
 ## 功能模块 / Modules
 
