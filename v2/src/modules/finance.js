@@ -431,49 +431,88 @@ export function renderAccounts() {
   const totalAssets = money(assets.reduce((sum, item) => sum + (isLiability(item.type) ? 0 : money(item.amount)), 0));
   const totalLiabilities = money(assets.reduce((sum, item) => sum + (isLiability(item.type) ? money(item.amount) : 0), 0));
   const netWorth = money(totalAssets - totalLiabilities);
-  const maxAsset = Math.max(...assets.map(a => Math.abs(accountNetValue(a))), 1);
+  const absTotal = assets.reduce((s, a) => s + Math.abs(accountNetValue(a)), 0);
+
+  const recentTxs = [...state.finance.transactions].sort((a, b) => (b.crud || '').localeCompare(a.crud || '')).slice(0, 6);
 
   return html`
-    <div class="grid cols-3 col-gap-16">
-      ${metricCard(t('netWorth'), currency(netWorth), netWorth >= 0 ? 'positive' : 'negative')}
-      ${metricCard(t('totalAssets'), currency(totalAssets), 'positive')}
-      ${metricCard(t('totalLiabilities'), totalLiabilities > 0 ? currency(-totalLiabilities) : '0', totalLiabilities > 0 ? 'negative' : 'muted')}
+    <div class="accounts-page-header">
+      <div class="accounts-page-title-row">
+        <h2 class="page-title">${t('accounts')}</h2>
+        <div class="accounts-page-actions">
+          <button class="btn btn-secondary" onclick="event.target.closest('.app-shell').__openAccountForm=!event.target.closest('.app-shell').__openAccountForm;var evt=new Event('toggle-accounts-form',{bubbles:true});document.querySelector('.app-shell').dispatchEvent(evt)">+ ${t('newAccount')}</button>
+        </div>
+      </div>
+      <div class="accounts-kpi-strip">
+        <div class="acct-kpi-card">
+          <div class="acct-kpi-label">${t('netWorth')}</div>
+          <div class="acct-kpi-value ${netWorth >= 0 ? 'positive' : 'negative'}">${currency(netWorth)}</div>
+          <div class="acct-kpi-sub">${assets.filter(a => !a.isArchived).length} ${t('accountsUnit')}</div>
+        </div>
+        <div class="acct-kpi-card">
+          <div class="acct-kpi-label">${t('totalAssets')}</div>
+          <div class="acct-kpi-value positive">${currency(totalAssets)}</div>
+          <div class="acct-kpi-sub">${t('excludingLiabilities')}</div>
+        </div>
+        <div class="acct-kpi-card">
+          <div class="acct-kpi-label">${t('totalLiabilities')}</div>
+          <div class="acct-kpi-value ${totalLiabilities > 0 ? 'negative' : ''}">${currency(totalLiabilities)}</div>
+          <div class="acct-kpi-sub">${totalLiabilities > 0 ? t('creditCardAndLoans') : t('noDebt')}</div>
+        </div>
+      </div>
     </div>
 
-    <div class="grid cols-2 col-gap-16" style="margin-top:16px">
-      <section class="card">
-        <h3>${t('accountAssets')}</h3>
-        ${assets.length ? assets.map(a => accountCard(a, maxAsset, netWorth)).join('') : `<div class="empty">${t('noAccounts')}</div>`}
-      </section>
-      <section class="card">
-        <h3>${t('fundAssets')}</h3>
-        ${funds.length ? funds.map(fund => {
-          const profit = money(fund.value) - money(fund.cost);
-          const profitPct = fund.cost > 0 ? Math.round((profit / money(fund.cost)) * 100) : 0;
-          return `<div class="fund-card">
-            <div class="fund-card-head">
-              <div class="fund-icon" style="background:${profit >= 0 ? '#6fbf73' : '#d49595'}"></div>
-              <div class="fund-info">
-                <div class="list-title">${escapeHtml(fund.name)}</div>
-                <div class="dim">${t('fundCost')} ${currency(fund.cost)}</div>
-              </div>
-            </div>
-            <div class="fund-card-body">
-              <div class="amount ${profit >= 0 ? 'positive' : 'negative'}">${currency(fund.value)}</div>
-              <span class="fund-change ${profit >= 0 ? 'positive' : 'negative'}">${profit >= 0 ? '+' : ''}${currency(profit)} (${profitPct >= 0 ? '+' : ''}${profitPct}%)</span>
-            </div>
-          </div>`;
-        }).join('') : `<div class="empty">${t('noFunds')}</div>`}
-      </section>
+    <div class="accounts-main-grid">
+      <div class="accounts-left-col">
+        <section class="card account-list-card">
+          <div class="card-header"><h3>${t('accountAssets')}</h3><span class="card-header-sub">${assets.filter(a => !a.isArchived).length} ${t('accountsUnit')}</span></div>
+          <div class="account-list-wrap">
+            ${assets.length ? assets.map(a => accountCard(a, absTotal)).join('') : `<div class="empty">${t('noAccounts')}</div>`}
+          </div>
+        </section>
+      </div>
+      <div class="accounts-right-col">
+        <section class="card fund-card-panel">
+          <div class="card-header"><h3>${t('fundAssets')}</h3><span class="card-header-sub">${funds.length} ${t('fundsUnit')}</span></div>
+          <div class="fund-kpis-bar">
+            <div class="fund-kpi-mini"><span class="fund-kpi-label">${t('marketValue')}</span><span class="fund-kpi-value">${currency(funds.reduce((s, f) => s + money(f.value), 0))}</span></div>
+            <div class="fund-kpi-mini"><span class="fund-kpi-label">${t('fundCost')}</span><span class="fund-kpi-value">${currency(funds.reduce((s, f) => s + money(f.cost), 0))}</span></div>
+            <div class="fund-kpi-mini"><span class="fund-kpi-label">${t('profitLossShort')}</span><span class="fund-kpi-value ${funds.reduce((s,f)=>s+money(f.value)-money(f.cost),0) >= 0 ? 'up' : 'down'}">${profitSign(funds.reduce((s,f)=>s+money(f.value)-money(f.cost),0))}${currency(Math.abs(funds.reduce((s,f)=>s+money(f.value)-money(f.cost),0)))}</span></div>
+          </div>
+          <div class="fund-list-wrap">
+            ${funds.length ? funds.map(fund => {
+              const profit = money(fund.value) - money(fund.cost);
+              const profitPct = fund.cost > 0 ? (profit / money(fund.cost) * 100) : 0;
+              return `<div class="fund-item-row">
+                <div class="fund-item-icon" style="background:${profit >= 0 ? 'rgba(34,197,94,.12)' : 'rgba(239,68,68,.12)'};color:${profit >= 0 ? '#6fbf73' : '#d49595'}"></div>
+                <div class="fund-item-info"><div class="fund-item-name">${escapeHtml(fund.name)}</div><div class="fund-item-cost">${t('fundCost')} ${currency(fund.cost)}</div></div>
+                <div class="fund-item-right"><div class="fund-item-value">${currency(fund.value)}</div><div class="fund-item-profit ${profit >= 0 ? 'positive' : 'negative'}">${profit >= 0 ? '+' : ''}${currency(profit)} (${profit >= 0 ? '+' : ''}${profitPct.toFixed(1)}%)</div></div>
+              </div>`;
+            }).join('') : `<div class="empty">${t('noFunds')}</div>`}
+          </div>
+        </section>
+        <section class="card" style="margin-top:12px">
+          <div class="card-header"><h3>${t('recentChanges')}</h3></div>
+          <div class="recent-changes-wrap">
+            ${recentTxs.length ? recentTxs.map(tx => {
+              const a = assets.find(aa => aa.id === tx.account || aa.id === tx.accountId);
+              const isInc = tx.type === 'income';
+              const sign = isInc ? '+' : '-';
+              const cls = isInc ? 'positive' : 'negative';
+              return `<div class="recent-change-row"><span class="recent-change-icon ${cls}">${isInc ? '↑' : '↓'}</span><span class="recent-change-account">${escapeHtml(a?.name || tx.accountName || tx.account || '')}</span><span class="recent-change-cat">${escapeHtml(tx.category||'')}</span><span class="recent-change-amount ${cls}">${sign}${currency(tx.amount)}</span><span class="recent-change-date">${(tx.date||'').slice(5)}</span></div>`;
+            }).join('') : `<div class="empty">${t('noChanges')}</div>`}
+          </div>
+        </section>
+      </div>
     </div>
 
-    <section class="card account-actions-panel" style="margin-top:16px">
-      <div class="actions-head" data-action="toggle-account-forms">
-        <h3>${t('quickActions')}</h3>
-        <button class="actions-toggle" data-action="toggle-account-forms">${accountFormsExpanded ? t('collapseForms') : t('expandForms')}</button>
+    <section class="card account-actions-panel" style="margin-top:12px">
+      <div class="actions-head" data-action="toggle-account-forms" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+        <h3 style="font-size:var(--text-sm);font-weight:600">${t('quickActions')}</h3>
+        <button class="actions-toggle" data-action="toggle-account-forms" style="font-size:11px;padding:2px 8px;border:1px solid var(--border);background:var(--surface);color:var(--ink-dim);border-radius:var(--r-xs);cursor:pointer">${accountFormsExpanded ? t('collapse') : t('expand')}</button>
       </div>
       ${accountFormsExpanded ? html`
-        <div class="form-tabs">
+        <div class="form-tabs" style="display:flex;gap:4px;padding:8px var(--s-5);border-bottom:1px solid var(--border-faint)">
           <button class="form-tab ${accountFormTab === 'new' ? 'active' : ''}" data-action="set-account-tab" data-tab="new">${t('newAccount')}</button>
           <button class="form-tab ${accountFormTab === 'adjust' ? 'active' : ''}" data-action="set-account-tab" data-tab="adjust">${t('adjustBalance')}</button>
           <button class="form-tab ${accountFormTab === 'fund' ? 'active' : ''}" data-action="set-account-tab" data-tab="fund">${t('fundOperation')}</button>
@@ -525,25 +564,27 @@ const ACCOUNT_COLORS = {
   other: '#94a3b8',
 };
 
-function accountCard(account, max, netWorth) {
+function profitSign(p) { return p >= 0 ? '+' : ''; }
+
+function accountCard(account, absTotal) {
   const signedAmount = accountNetValue(account);
   const absAmount = Math.abs(signedAmount);
   const amountTone = isLiability(account.type) ? 'negative' : (signedAmount > 0 ? 'positive' : 'muted');
   const prefix = isLiability(account.type) ? '-' : '';
-  const barRatio = max > 0 ? (absAmount / max) : 0;
   const accent = ACCOUNT_COLORS[account.type] || ACCOUNT_COLORS.other;
+  const barRatio = absTotal > 0 ? Math.max(2, (absAmount / absTotal) * 100) : 0;
 
   return html`
     <div class="account-card" style="--accent:${accent}">
-      <div class="account-card-bar" style="width:${Math.max(barRatio * 100, 4)}%"></div>
+      <div class="account-card-bar" style="width:${barRatio}%"></div>
       <div class="account-card-main">
-        <div class="account-card-left">
-          <span class="account-card-type" style="background:${accent}18;color:${accent}">${accountTypeLabel(account.type)}</span>
+        <span class="account-card-type" style="background:${accent}18;color:${accent}">${accountTypeLabel(account.type)}</span>
+        <div class="account-card-info">
           <span class="account-card-name">${escapeHtml(account.name)}</span>
+          <span class="account-card-meta">${absTotal > 0 ? Math.round((absAmount / absTotal) * 100) : 0}%</span>
         </div>
         <div class="account-card-right">
           <div class="account-card-amount ${amountTone}">${prefix}${currency(absAmount)}</div>
-          ${netWorth > 0 ? `<div class="account-card-share">${Math.round((absAmount / Math.abs(netWorth)) * 100)}%</div>` : ''}
         </div>
       </div>
     </div>

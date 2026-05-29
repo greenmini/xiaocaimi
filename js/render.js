@@ -127,14 +127,157 @@ function renderAssetBars() {
 }
 
 function renderAssetList() {
-  const html = a => {
-    const typeBadge = a.type === 'debt' ? '<span class="asset-badge debt">负债</span>' : a.type === 'virtual' ? '<span class="asset-badge virtual">虚拟</span>' : '';
-    return `<li class="asset-item" onclick="editAsset('${esc(a.id)}')"><span class="icon">${a.icon || ''}</span><span class="name">${esc(a.name)}${typeBadge}</span><span class="amount" style="color:${a.type==='debt'?'var(--red)':'inherit'}">${a.type==='debt'?'-':''}${fmt(a.amount)}</span><span class="edit-hint">edit</span></li>`;
-  };
-  const el1 = document.getElementById('assetList');
-  if (el1) el1.innerHTML = data.assets.map(html).join('');
-  const el2 = document.getElementById('assetListPage');
-  if (el2) el2.innerHTML = data.assets.map(html).join('');
+  const el = document.getElementById('assetListPage');
+  const acEl = document.getElementById('accountCount');
+
+  const active = accountService.getAll().filter(a => !a.isArchived);
+  if (acEl) acEl.textContent = active.length + ' 个账户';
+
+  if (!el) return;
+
+  if (active.length === 0) {
+    el.innerHTML = '<div class="empty" style="padding:32px 0">暂无账户，点击右上角「新增账户」开始</div>';
+    return;
+  }
+
+  const total = active.reduce((s, a) => s + accountService.netValue(a), 0);
+  const absTotal = active.reduce((s, a) => s + Math.abs(accountService.netValue(a)), 0);
+
+  const COLOR = { cash:'#85b8a3',bank:'#8e95d8',alipay:'#5b9bd5',wechat:'#6fbf73',fund:'#c49b8f',stock:'#e8a87c',medical:'#7ec8c8',credit:'#d49595',debt:'#c9a87c',other:'#94a3b8' };
+  const TYPE_LABEL = { cash:'现金',bank:'银行卡',alipay:'支付宝',wechat:'微信',fund:'基金',stock:'股票',medical:'医保',credit:'信用卡',debt:'负债',other:'其他' };
+  const TYPE_ORDER = { cash:0,bank:1,alipay:2,wechat:3,stock:4,fund:5,medical:6,credit:7,debt:8,other:9 };
+
+  const sorted = [...active].sort((a, b) => (TYPE_ORDER[a.type] ?? 9) - (TYPE_ORDER[b.type] ?? 9));
+
+  el.innerHTML = sorted.map(a => {
+    const nv = accountService.netValue(a);
+    const abs = Math.abs(nv);
+    const barW = absTotal > 0 ? Math.max(2, (abs / absTotal) * 100) : 0;
+    const c = COLOR[a.type] || COLOR.other;
+    const typeLabel = TYPE_LABEL[a.type] || a.type;
+    const isNeg = accountService.isLiability(a.type);
+    const prefix = isNeg ? '-' : '';
+    const dateStr = a.updatedAt ? new Date(a.updatedAt).toLocaleDateString('zh-CN', {month:'numeric',day:'numeric'}) : '';
+
+    return `<div class="acct-row" onclick="editAsset('${esc(a.id)}')" title="点击编辑 ${esc(a.name)}">
+      <div class="acct-row-bar" style="width:${barW}%;background:${c}22"></div>
+      <div class="acct-row-icon" style="background:${c}18;color:${c}">${esc(a.icon||'')}</div>
+      <div class="acct-row-info">
+        <div class="acct-row-name">${esc(a.name)}</div>
+        <div class="acct-row-meta"><span class="acct-row-type" style="color:${c}">${typeLabel}</span>${dateStr ? `<span class="acct-row-date">更新于 ${dateStr}</span>` : ''}</div>
+      </div>
+      <div class="acct-row-right">
+        <div class="acct-row-amount" style="color:${isNeg ? 'var(--danger)' : 'var(--ink)'}">${prefix}${fmt(abs)}</div>
+        <div class="acct-row-pct">${total ? Math.round(abs / total * 100) : 0}%</div>
+      </div>
+      <div class="acct-row-actions">
+        <button class="acct-row-btn" onclick="event.stopPropagation();openAdjustAssetModal('${esc(a.id)}')">调整</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  renderAccountsKpiBar();
+  renderRecentChanges();
+}
+
+function renderAccountsKpiBar() {
+  const el = document.getElementById('accountsKpiBar');
+  if (!el) return;
+  const net = accountService.total();
+  const assets = accountService.totalAssetsOnly();
+  const liabilities = accountService.totalLiabilities();
+
+  el.innerHTML = `
+    <div class="acct-kpi-card">
+      <div class="acct-kpi-label">净资产</div>
+      <div class="acct-kpi-value ${net >= 0 ? 'positive' : 'negative'}">¥${fmt(Math.abs(net))}</div>
+      <div class="acct-kpi-sub">${accountService.getAll().filter(a=>!a.isArchived).length} 个账户</div>
+    </div>
+    <div class="acct-kpi-card">
+      <div class="acct-kpi-label">总资产</div>
+      <div class="acct-kpi-value positive">¥${fmt(assets)}</div>
+      <div class="acct-kpi-sub">不含负债</div>
+    </div>
+    <div class="acct-kpi-card">
+      <div class="acct-kpi-label">总负债</div>
+      <div class="acct-kpi-value ${liabilities > 0 ? 'negative' : ''}">¥${fmt(liabilities)}</div>
+      <div class="acct-kpi-sub">${liabilities > 0 ? '信用卡 · 贷款' : '无负债'}</div>
+    </div>`;
+}
+
+function renderRecentChanges() {
+  const el = document.getElementById('recentAccountChanges');
+  if (!el) return;
+  const txs = (window.data?.transactions || []).slice().sort((a,b) => (b.crud||'').localeCompare(a.crud||''));
+  const recent = txs.slice(0, 8);
+  if (!recent.length) { el.innerHTML = '<div class="empty" style="padding:16px 0">暂无变动</div>'; return; }
+  el.innerHTML = recent.map(t => {
+    const a = accountService.getById(t.account);
+    const icon = (typeof t.type === 'string' && t.type === 'income') ? '↑' : '↓';
+    const cls = t.type === 'income' ? 'positive' : 'negative';
+    const sign = t.type === 'income' ? '+' : '-';
+    return `<div class="recent-change-row">
+      <span class="recent-change-icon ${cls}">${icon}</span>
+      <span class="recent-change-account">${esc(a?.name || t.accountName || t.account)}</span>
+      <span class="recent-change-cat">${esc(t.category||'')}</span>
+      <span class="recent-change-amount ${cls}">${sign}¥${(t.amount||0).toFixed(2)}</span>
+      <span class="recent-change-date">${(t.date||'').slice(5)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderFundList() {
+  const el = document.getElementById('fundListPage');
+  const fcEl = document.getElementById('fundCount');
+  const funds = window.data?.funds || [];
+  if (fcEl) fcEl.textContent = funds.length + ' 只基金';
+
+  if (el) {
+    if (!funds.length) { el.innerHTML = '<div class="empty" style="padding:16px 0">暂无基金</div>'; }
+    else {
+      el.innerHTML = funds.map(f => {
+        const profit = ((f.value || 0) - (f.cost || 0));
+        const pct = f.cost > 0 ? (profit / f.cost * 100) : 0;
+        const cls = profit >= 0 ? 'positive' : 'negative';
+        const sign = profit >= 0 ? '+' : '';
+        return `<div class="fund-item-row" onclick="editFund('${esc(f.id)}')">
+          <div class="fund-item-icon" style="background:${profit >= 0 ? 'rgba(34,197,94,.12)' : 'rgba(239,68,68,.12)'};color:${profit >= 0 ? 'var(--success)' : 'var(--danger)'}">${ICONS[2]||''}</div>
+          <div class="fund-item-info"><div class="fund-item-name">${esc(f.name)}</div><div class="fund-item-cost">成本 ¥${(f.cost||0).toFixed(2)}</div></div>
+          <div class="fund-item-right"><div class="fund-item-value">¥${(f.value||0).toFixed(2)}</div><div class="fund-item-profit ${cls}">${sign}¥${profit.toFixed(2)} (${sign}${Math.abs(pct).toFixed(1)}%)</div></div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  const fv = funds.reduce((s, f) => s + (f.value || 0), 0);
+  const fc = funds.reduce((s, f) => s + (f.cost || 0), 0);
+  const fp = fv - fc;
+  const fr = fc ? fp / fc * 100 : 0;
+  const setKpi = (id, v, cls) => { const e = document.getElementById(id); if (e) { e.textContent = v; e.className = 'fund-kpi-value ' + (cls||''); } };
+  setKpi('fkMarket', fmt(fv), '');
+  setKpi('fkCost', fmt(fc), '');
+  setKpi('fkProfit', (fp >= 0 ? '+' : '') + fmt(fp), fp >= 0 ? 'up' : 'down');
+  setKpi('fkReturn', (fr >= 0 ? '+' : '') + fr.toFixed(2) + '%', fr >= 0 ? 'up' : 'down');
+
+  const hist = document.getElementById('fundHistoryList');
+  if (hist) {
+    const hh = (data.fundHistory || []).slice(-15).reverse();
+    hist.innerHTML = hh.length
+      ? hh.map(h => {
+        const hProfit = h.profit || 0;
+        const hCls = hProfit >= 0 ? 'positive' : 'negative';
+        const hSign = hProfit >= 0 ? '+' : '';
+        return `<div class="fund-history-row">
+          <span class="fund-history-date">${esc(h.date)}</span>
+          <span class="fund-history-val">${fmt(h.value)}</span>
+          <span class="fund-history-profit ${hCls}">${hSign}¥${fmt(Math.abs(hProfit))}</span>
+        </div>`;
+      }).join('')
+      : '<div style="padding:12px 0;color:var(--ink-muted);font-size:var(--text-xs);text-align:center">暂无历史记录</div>';
+  }
+
+  renderFundChart();
+  renderRecentChanges();
 }
 
 function renderHeatmap() {
@@ -163,50 +306,6 @@ function renderHeatmap() {
     h += `<div class="day-cell${cls}" style="background:rgba(255,58,92,${intensity});${val ? 'color:var(--text)' : ''}" title="${date}: ${fmt(val)}">${d}</div>`;
   }
   el.innerHTML = h;
-}
-
-function renderFundList() {
-  const el = document.getElementById('fundListPage');
-  if (el) {
-    el.innerHTML = data.funds.map(f => {
-      const p = f.value - f.cost;
-      const r = f.cost ? p / f.cost * 100 : 0;
-      return `<li class="asset-item" onclick="editFund('${esc(f.id)}')">
-        <span class="icon">${ICONS[2]}</span>
-        <span class="name">${esc(f.name)}</span>
-        <span class="amount" style="color:${r >= 0 ? 'var(--green)' : 'var(--red)'}">${fmt(f.value)}</span>
-        <span class="edit-hint">edit</span>
-      </li>`;
-    }).join('');
-  }
-
-  // KPI bar
-  const fv = data.funds.reduce((s, f) => s + (f.value || 0), 0);
-  const fc = data.funds.reduce((s, f) => s + (f.cost || 0), 0);
-  const fp = fv - fc;
-  const fr = fc ? fp / fc * 100 : 0;
-  const setKpi = (id, v, cls) => { const e = document.getElementById(id); if (e) { e.textContent = v; e.className = 'fund-kpi-value ' + cls; } };
-  setKpi('fkMarket', fmt(fv), '');
-  setKpi('fkCost', fmt(fc), '');
-  setKpi('fkProfit', (fp >= 0 ? '+' : '') + fmt(fp), fp >= 0 ? 'up' : 'down');
-  setKpi('fkReturn', (fr >= 0 ? '+' : '') + fr.toFixed(2) + '%', fr >= 0 ? 'up' : 'down');
-
-  // History list
-  const hist = document.getElementById('fundHistoryList');
-  if (hist) {
-    const hh = (data.fundHistory || []).slice(-20).reverse();
-    hist.innerHTML = hh.length
-      ? hh.map(h => `<div class="fund-history-row">
-        <span class="fund-history-date">${esc(h.date)}</span>
-        <div class="fund-history-values">
-          <span class="fund-history-val">${fmt(h.value)}</span>
-          <span class="fund-history-profit ${h.profit >= 0 ? 'up' : 'down'}">${h.profit >= 0 ? '+' : ''}${fmt(h.profit)}</span>
-        </div>
-      </div>`).join('')
-      : '<div style="padding:12px 0;color:var(--ink-muted);font-size:var(--text-xs);text-align:center">暂无历史记录 — 保存基金时会自动记录</div>';
-  }
-
-  renderFundChart();
 }
 
 let fundChart = null;

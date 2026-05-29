@@ -841,6 +841,95 @@ body {
 .fund-history-profit.down { color: var(--danger); }
 
 /* ═══════════════════════════════════════════════
+   Accounts Page — 账户资产页
+   ═══════════════════════════════════════════════ */
+.page-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s-6); }
+.page-title-actions { display: flex; gap: var(--s-2); flex-shrink: 0; }
+
+.accounts-kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-3); margin-bottom: var(--s-4); }
+.acct-kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: var(--s-4) var(--s-5); }
+.acct-kpi-label { font-size: var(--text-xs); color: var(--ink-muted); margin-bottom: 4px; letter-spacing: .3px; }
+.acct-kpi-value { font-size: 24px; font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+.acct-kpi-value.positive { color: var(--ink); }
+.acct-kpi-value.negative { color: var(--danger); }
+.acct-kpi-sub { font-size: var(--text-xs); color: var(--ink-muted); margin-top: 2px; }
+
+.accounts-main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.accounts-left-col, .accounts-right-col { display: flex; flex-direction: column; gap: var(--s-3); }
+
+.account-list-card { overflow: hidden; }
+.card-header { display: flex; align-items: center; justify-content: space-between; padding: var(--s-3) var(--s-5); border-bottom: 1px solid var(--border); }
+.card-header h3 { font-size: var(--text-sm); font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: var(--s-2); }
+.card-header-sub { font-size: var(--text-xs); color: var(--ink-muted); }
+.account-list-wrap { display: flex; flex-direction: column; }
+
+.acct-row { position: relative; display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5); cursor: pointer; transition: background .15s; border-bottom: 1px solid var(--border-faint); overflow: hidden; }
+.acct-row:last-child { border-bottom: none; }
+.acct-row:hover { background: var(--surface-raised); }
+.acct-row-bar { position: absolute; left: 0; top: 0; bottom: 0; opacity: .08; transition: width .4s ease; border-radius: 0 var(--r-xs) var(--r-xs) 0; z-index: 0; }
+.acct-row:hover .acct-row-bar { opacity: .14; }
+
+.acct-row-icon { width: 32px; height: 32px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; z-index: 1; }
+.acct-row-info { flex: 1; min-width: 0; z-index: 1; }
+.acct-row-name { font-size: var(--text-sm); font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.acct-row-meta { display: flex; align-items: center; gap: var(--s-2); margin-top: 1px; }
+.acct-row-type { font-size: 10px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; }
+.acct-row-date { font-size: 10px; color: var(--ink-muted); }
+
+.acct-row-right { text-align: right; z-index: 1; }
+.acct-row-amount { font-size: 15px; font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+.acct-row-pct { font-size: 10px; color: var(--ink-muted); margin-top: 1px; }
+
+.acct-row-actions { position: absolute; right: var(--s-5); display: flex; gap: var(--s-1); z-index: 2; opacity: 0; transform: translateX(4px); transition: all .18s; }
+.acct-row:hover .acct-row-actions, .acct-row:focus-within .acct-row-actions { opacity: 1; transform: translateX(0); }
+.acct-row-btn { font-size: 11px; padding: 2px 8px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-dim); border-radius: var(--r-xs); cursor: pointer; transition: all .15s; }
+.acct-row-btn:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* Fund items */
+.fund-card-panel { overflow: hidden; }
+.fund-kpis-bar { display: flex; gap: var(--s-2); padding: var(--s-3) var(--s-5); border-bottom: 1px solid var(--border-faint); }
+.fund-kpi-mini { flex: 1; text-align: center; }
+.fund-kpi-mini .fund-kpi-label { display: block; font-size: 10px; color: var(--ink-muted); margin-bottom: 2px; }
+.fund-kpi-mini .fund-kpi-value { font-size: var(--text-sm); font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fund-kpi-mini .fund-kpi-value.up { color: var(--success); }
+.fund-kpi-mini .fund-kpi-value.down { color: var(--danger); }
+
+.fund-list-wrap { display: flex; flex-direction: column; }
+.fund-item-row { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-5); cursor: pointer; border-bottom: 1px solid var(--border-faint); transition: background .15s; }
+.fund-item-row:last-child { border-bottom: none; }
+.fund-item-row:hover { background: var(--surface-raised); }
+.fund-item-icon { width: 28px; height: 28px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.fund-item-info { flex: 1; min-width: 0; }
+.fund-item-name { font-size: var(--text-sm); font-weight: 500; color: var(--ink); }
+.fund-item-cost { font-size: 11px; color: var(--ink-muted); }
+.fund-item-right { text-align: right; }
+.fund-item-value { font-size: var(--text-sm); font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fund-item-profit { font-size: 11px; font-family: var(--font-mono); margin-top: 1px; }
+.fund-item-profit.positive { color: var(--success); }
+.fund-item-profit.negative { color: var(--danger); }
+
+/* Recent changes */
+.recent-changes-wrap { display: flex; flex-direction: column; }
+.recent-change-row { display: flex; align-items: center; gap: var(--s-2); padding: 6px var(--s-5); font-size: var(--text-xs); border-bottom: 1px solid var(--border-faint); }
+.recent-change-row:last-child { border-bottom: none; }
+.recent-change-icon { font-size: 11px; font-weight: 700; width: 16px; text-align: center; flex-shrink: 0; }
+.recent-change-icon.positive { color: var(--success); }
+.recent-change-icon.negative { color: var(--danger); }
+.recent-change-account { color: var(--ink-dim); max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+.recent-change-cat { color: var(--ink-muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recent-change-amount { font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.recent-change-amount.positive { color: var(--success); }
+.recent-change-amount.negative { color: var(--danger); }
+.recent-change-date { color: var(--ink-muted); font-size: 10px; flex-shrink: 0; }
+
+@media (max-width: 768px) {
+  .accounts-kpi-row { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .acct-kpi-card { padding: 10px; }
+  .acct-kpi-value { font-size: 18px; }
+  .accounts-main-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════
    ASSET LIST / TRANSACTIONS
    ═══════════════════════════════════════════════ */
 .asset-list { list-style: none; }

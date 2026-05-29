@@ -239,18 +239,42 @@
 
         <!-- ▸ 账户页 -->
         <div id="page-accounts" class="page">
-            <div class="page-title">账户</div>
-            <div class="card"><div class="card-header"><h3><span class="icon-dot"></span>资产账户</h3><a onclick="openAssetModal()">+添加</a></div><ul class="asset-list" id="assetListPage"></ul></div>
-            <div class="card"><div class="card-header"><h3><span class="icon-dot"></span>基金账户</h3><a onclick="openFundModal()">+添加</a></div><ul class="asset-list" id="fundListPage"></ul></div>
-            <div class="card fund-chart-card">
-                <div class="fund-chart-kpis">
-                    <div class="fund-kpi"><span class="fund-kpi-label">当前市值</span><span class="fund-kpi-value" id="fkMarket">¥0.00</span></div>
-                    <div class="fund-kpi"><span class="fund-kpi-label">总成本</span><span class="fund-kpi-value" id="fkCost">¥0.00</span></div>
-                    <div class="fund-kpi"><span class="fund-kpi-label">浮动收益</span><span class="fund-kpi-value" id="fkProfit">¥0.00</span></div>
-                    <div class="fund-kpi"><span class="fund-kpi-label">收益率</span><span class="fund-kpi-value" id="fkReturn">0.00%</span></div>
+            <div class="page-title-row">
+                <div class="page-title">账户资产</div>
+                <div class="page-title-actions">
+                    <button class="quick-btn primary" onclick="openAssetModal()">+ 新增账户</button>
+                    <button class="quick-btn secondary" onclick="openFundModal()">+ 新增基金</button>
                 </div>
+            </div>
+            <div class="accounts-kpi-row" id="accountsKpiBar"></div>
+            <div class="accounts-main-grid">
+                <div class="accounts-left-col">
+                    <div class="card account-list-card">
+                        <div class="card-header"><h3><span class="icon-dot"></span>资产账户</h3><span class="card-header-sub" id="accountCount">0 个账户</span></div>
+                        <div id="assetListPage" class="account-list-wrap"></div>
+                    </div>
+                </div>
+                <div class="accounts-right-col">
+                    <div class="card fund-card-panel">
+                        <div class="card-header"><h3><span class="icon-dot"></span>基金投资</h3><span class="card-header-sub" id="fundCount">0 只基金</span></div>
+                        <div class="fund-kpis-bar">
+                            <div class="fund-kpi-mini"><span class="fund-kpi-label">市值</span><span class="fund-kpi-value" id="fkMarket">¥0</span></div>
+                            <div class="fund-kpi-mini"><span class="fund-kpi-label">成本</span><span class="fund-kpi-value" id="fkCost">¥0</span></div>
+                            <div class="fund-kpi-mini"><span class="fund-kpi-label">盈亏</span><span class="fund-kpi-value" id="fkProfit">¥0</span></div>
+                            <div class="fund-kpi-mini"><span class="fund-kpi-label">收益率</span><span class="fund-kpi-value" id="fkReturn">0%</span></div>
+                        </div>
+                        <div id="fundListPage" class="fund-list-wrap"></div>
+                        <div id="fundHistoryList" class="fund-history-compact" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"></div>
+                    </div>
+                    <div class="card" style="margin-top:12px">
+                        <div class="card-header"><h3><span class="icon-dot"></span>最近变动</h3></div>
+                        <div id="recentAccountChanges" class="recent-changes-wrap"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card fund-chart-card" style="margin-top:12px">
+                <div class="card-header"><h3><span class="icon-dot"></span>基金走势</h3></div>
                 <div class="fund-chart-container"><canvas id="fundChart"></canvas></div>
-                <div id="fundHistoryList" class="fund-history-compact"></div>
             </div>
         </div>
 

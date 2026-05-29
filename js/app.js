@@ -241,6 +241,23 @@ function editAsset(id) {
   if (a) openAssetModal(a);
 }
 
+function openAdjustAssetModal(accountId) {
+  const a = accountService.getById(accountId);
+  if (!a) return;
+  const newBalance = prompt(`调整余额：「${a.name}」\n当前余额 ¥${(a.amount || 0).toFixed(2)}`, (a.amount || 0).toFixed(2));
+  if (newBalance === null) return;
+  const val = parseFloat(newBalance);
+  if (isNaN(val)) { showToast('请输入有效金额', 'error'); return; }
+  const diff = val - (a.amount || 0);
+  if (Math.abs(diff) < 0.005) return;
+  confirm('确认调整', `「${a.name}」余额 ¥${(a.amount||0).toFixed(2)} → ¥${val.toFixed(2)}\n差额 ${diff >= 0 ? '+' : ''}${diff.toFixed(2)} 将生成调整记录`, () => {
+    accountService.adjustBalance(accountId, val, null, null);
+    saveData();
+    render();
+    showToast('余额已调整', 'success');
+  });
+}
+
 function closeAssetModal() {
   el('assetModal').classList.remove('show');
   editAsset_ = null;
