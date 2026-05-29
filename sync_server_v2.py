@@ -4,8 +4,9 @@ import http.server, json, os, shutil, sys
 from datetime import datetime
 from urllib.parse import urlparse
 
-DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json")
-BACKUP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backups")
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+DATA_FILE = os.path.join(DATA_DIR, "data.json")
+BACKUP_DIR = os.path.join(DATA_DIR, "backups")
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
 SYNC_TOKEN = os.environ.get("SYNC_TOKEN", "").strip()
 
@@ -26,8 +27,11 @@ class FinanceHandler(http.server.SimpleHTTPRequestHandler):
             if not self._check_auth():
                 return
             try:
-                with open(DATA_FILE) as f:
-                    data = json.load(f)
+                if os.path.exists(DATA_FILE):
+                    with open(DATA_FILE) as f:
+                        data = json.load(f)
+                else:
+                    data = {"finance": {"transactions": []}}
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()

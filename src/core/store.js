@@ -139,7 +139,9 @@ export function loadState() {
   const local = safeJson(localStorage.getItem(STORAGE_KEY)) || loadLegacySnapshot();
   state = normalize(local);
   saveState({ silent: true });
-  if (!local) tryPull();
+  if (!local) { pullFromServer(); }
+  else { setTimeout(pullFromServer, 2000); }
+  startAutoPull();
   return state;
 }
 
@@ -149,7 +151,9 @@ export function getState() {
 }
 
 let syncTimer = null;
+let pullInterval = null;
 const SYNC_DEBOUNCE = 2000;
+const PULL_INTERVAL = 30000;
 
 function syncConfig() {
   const s = state?.finance?.settings || {};
@@ -174,20 +178,35 @@ function schedulePush() {
   syncTimer = setTimeout(pushToServer, SYNC_DEBOUNCE);
 }
 
-async function tryPull() {
-  const { url, token } = syncConfig();
-  const base = url || window.location.origin;
-  const headers = {};
-  if (token) headers['Authorization'] = 'Bearer ' + token;
+async function pullFromServer() {
   try {
-    const resp = await fetch(base + '/api/data', { headers });
+    const s = syncConfig();
+    const base = s.url || window.location.origin;
+    const headers = {};
+    if (s.token) headers['Authorization'] = 'Bearer ' + s.token;
+    const resp = await fetch(base + '/api/data', { headers, signal: AbortSignal.timeout(8000) });
     if (!resp.ok) return;
     const serverData = await resp.json();
-    if (!serverData?.finance?.transactions?.length) return;
-    state = normalize(serverData);
-    saveState({ silent: true });
-    subscribers.forEach(fn => fn(state));
+    const serverTime = serverData?.updatedAt || '';
+    const localTime = state?.updatedAt || '';
+    if (serverTime > localTime) {
+      state = normalize(serverData);
+      saveState({ silent: true });
+      subscribers.forEach(fn => fn(state));
+    }
   } catch { /* network unavailable */ }
+}
+
+function startAutoPull() {
+  if (pullInterval) return;
+  pullInterval = setInterval(pullFromServer, PULL_INTERVAL);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') pullFromServer();
+  });
+}
+
+export function manualPull() {
+  pullFromServer();
 }
 
 export function saveState(options = {}) {

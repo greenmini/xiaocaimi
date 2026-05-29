@@ -6,7 +6,4 @@ BACKUP_DIR="/app/data/backups"
 
 mkdir -p "$BACKUP_DIR"
 
-# 软链接 backups 到 /app/（服务器在那里找）
-ln -sf "$BACKUP_DIR" /app/backups
-
 exec python3 /app/sync_server_v2.py 8080
