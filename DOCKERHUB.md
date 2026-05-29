@@ -6,22 +6,23 @@ A local-first personal finance and life-management dashboard for NAS, home serve
 
 ## 最新版本 / Latest Release
 
-**v6.4 · 2026-05-29**
+**v7.0 · 2026-05-29**
 
 本版重点更新：
 
-- 架构重构：新增统一存储层 storageService，所有 localStorage 读写使用命名空间 xiaocaimi:*，旧数据自动迁移
-- 业务 Service 层：accountService / transactionService / analyticsService / contactService / taskService / noteService，页面组件不再直接操作数据
-- 账户资金闭环：账户余额联动正确（收入+/支出-/回滚），手动调余额生成调整记录
-- Dashboard 统一数据源：KPI、走势、分类均来自 analyticsService 实时计算
+- 删除 v1 代码，v2 提升为项目主体
+- 架构重构：src/core/ 统一框架层，src/modules/ 业务模块
+- 路径修复：Dockerfile、sync_server、entrypoint 移除 v2 引用
+- 代码优化：修复 inline onclick 为 data-action 事件委托
+- 翻译补全：新增 accounts key 中英文翻译
 
 Highlights:
 
-- Architecture refactor: unified storage layer with namespace xiaocaimi:*, automatic legacy key migration
-- Business service layer: accountService, transactionService, analyticsService, contactService, taskService, noteService
-- Closed-loop finance: balance auto-sync on CRUD, adjustment records on manual changes
-- Single source of truth: all Dashboard numbers from analyticsService real-time calculation
-- Codebase cleanup: removed legacy backups, old server scripts, debug files, and temp descriptors — production-only structure
+- 删除 v1 代码，v2 提升为项目主体
+- 架构重构：src/core/ 统一框架层，src/modules/ 业务模块
+- 路径修复：Dockerfile、sync_server、entrypoint 移除 v2 引用
+- 代码优化：修复 inline onclick 为 data-action 事件委托
+- 翻译补全：新增 accounts key 中英文翻译
 
 ## 功能模块 / Modules
 

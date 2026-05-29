@@ -6,10 +6,7 @@ const root = path.resolve(__dirname, '..');
 
 const FILES = [
   { path: 'version.json',                 type: 'json' },
-  { path: 'js/model.js',                  type: 'js',   pattern: /const VERSION = '[^']*'/ },
-  { path: 'sw.js',                        type: 'js',   pattern: /CACHE_PREFIX \+ '-v[^']*'/ },
-  { path: 'v2/src/main.js',               type: 'js',   pattern: /const APP_VERSION = '[^']*'/ },
-  { path: 'index.html',                   type: 'html', pattern: /<div class="sidebar-version"[^>]*>v[^<]*<\/div>/ },
+  { path: 'src/main.js',                  type: 'js',   pattern: /const APP_VERSION = '[^']*'/ },
   { path: 'DOCKERHUB.md',                 type: 'notes' },
   { path: 'CHANGELOG.md',                 type: 'changelog' },
 ];
@@ -113,10 +110,7 @@ console.log('');
 
 console.log('同步版本号...');
 updateVersionFile(options);
-updateJsPattern('js/model.js', /const VERSION = '[^']*'/, v);
-updateJsPattern('sw.js', /CACHE_PREFIX \+ '-v[^']*'/, v);
-updateJsPattern('v2/src/main.js', /const APP_VERSION = '[^']*'/, v);
-updateHtmlVersion('index.html', v);
+updateJsPattern('src/main.js', /const APP_VERSION = '[^']*'/, v);
 updateDockerHubMarkdown(options);
 updateChangelog(options);
 

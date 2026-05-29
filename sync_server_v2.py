@@ -36,7 +36,7 @@ class FinanceHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_error(500, str(e))
             return
         if urlparse(self.path).path == "/":
-            self.path = "/v2/index.html"
+            self.path = "/index.html"
         return super().do_GET()
 
     def do_POST(self):

@@ -440,7 +440,7 @@ export function renderAccounts() {
       <div class="accounts-page-title-row">
         <h2 class="page-title">${t('accounts')}</h2>
         <div class="accounts-page-actions">
-          <button class="btn btn-secondary" onclick="event.target.closest('.app-shell').__openAccountForm=!event.target.closest('.app-shell').__openAccountForm;var evt=new Event('toggle-accounts-form',{bubbles:true});document.querySelector('.app-shell').dispatchEvent(evt)">+ ${t('newAccount')}</button>
+          <button class="btn btn-secondary" data-action="toggle-account-forms">+ ${t('newAccount')}</button>
         </div>
       </div>
       <div class="accounts-kpi-strip">

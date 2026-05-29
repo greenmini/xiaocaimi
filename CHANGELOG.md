@@ -1,5 +1,14 @@
 # 更新日志 / Changelog
 
+## v7.0 · 2026-05-29
+
+- 删除 v1 代码，v2 提升为项目主体
+- 架构重构：src/core/ 统一框架层，src/modules/ 业务模块
+- 路径修复：Dockerfile、sync_server、entrypoint 移除 v2 引用
+- 代码优化：修复 inline onclick 为 data-action 事件委托
+- 翻译补全：新增 accounts key 中英文翻译
+
+
 ## v6.4 · 2026-05-29
 
 架构重构版本，建立统一数据层。

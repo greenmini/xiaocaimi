@@ -100,7 +100,7 @@ python -m http.server 8080
 Then open:
 
 ```text
-http://127.0.0.1:8080/v2/
+http://127.0.0.1:8080/
 ```
 
 ## 版本 / Version

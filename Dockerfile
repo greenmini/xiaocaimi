@@ -7,17 +7,12 @@ WORKDIR /app
 COPY sync_server_v2.py .
 COPY index.html .
 COPY manifest.json .
-COPY sw.js .
-COPY style.css .
-COPY js/ ./js/
-COPY v2/ ./v2/
+COPY styles.css .
+COPY src/ ./src/
 COPY icons/ ./icons/
 
 # 版本信息（OTA 更新检查用）
 COPY version.json ./version.json
-
-# 默认数据（首次启动时复制到 volume，保持脱敏）
-COPY data.default.json ./data.json.default
 
 # 入口脚本
 COPY entrypoint.sh .
