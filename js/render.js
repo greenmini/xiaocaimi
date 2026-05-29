@@ -22,7 +22,8 @@ function render() {
   const days = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   el('budgetDayAvg').textContent = '日均' + fmt(l / Math.max(1, days - new Date().getDate()));
 
-  el('accountCount').textContent = data.assets.length;
+  const ac = document.getElementById('accountCount');
+  if (ac) ac.textContent = data.assets.length;
   const last = data.transactions.length
     ? data.transactions[data.transactions.length - 1] : null;
   el('lastRecord').textContent = last ? last.date : '无记录';
@@ -86,7 +87,6 @@ function render() {
   setTimeout(() => {
     renderRecentTx();
     renderCats();
-    renderFundList();
     populateFilters();
   }, 0);
 }
@@ -178,6 +178,7 @@ function renderAssetList() {
 
   renderAccountsKpiBar();
   renderRecentChanges();
+  renderFundList();
 }
 
 function renderAccountsKpiBar() {
@@ -277,7 +278,6 @@ function renderFundList() {
   }
 
   renderFundChart();
-  renderRecentChanges();
 }
 
 function renderHeatmap() {
@@ -1213,6 +1213,7 @@ function safePageRun(name, fn) {
 
 function getPageModule(pg) {
   const modules = {
+    accounts: { title: '账户资产', render: renderAssetList },
     analysis: { title: '数据分析', render: renderAnalysis },
     records: { title: '交易记录', render: () => { populateFilters(); page = 1; renderRecords(); } },
     meals: { title: '餐食计划', render: () => { renderRecipes(); renderMealPlan(); } },
