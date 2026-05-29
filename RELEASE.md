@@ -15,7 +15,7 @@ node tools/release.js 6.4 "账户资产重构" "家务历史折叠优化"
 node tools/release.js 6.4.1 --date 2026-06-01 "修复侧边栏闪烁"
 ```
 
-脚本自动更新以下 **6 个文件** 中的版本号：
+脚本自动更新以下 **7 个文件** 中的版本号：
 
 | 文件 | 更新内容 |
 |------|---------|
@@ -25,6 +25,7 @@ node tools/release.js 6.4.1 --date 2026-06-01 "修复侧边栏闪烁"
 | `v2/src/main.js` | `const APP_VERSION = '6.4'` |
 | `index.html` | 侧边栏底部版本号文本 |
 | `DOCKERHUB.md` | 「最新版本」区块的版本号和更新记录 |
+| `CHANGELOG.md` | 顶部插入新版本更新条目 |
 
 ## 第 2 步 — 构建 + 推送
 

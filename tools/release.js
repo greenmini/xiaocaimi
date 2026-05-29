@@ -11,6 +11,7 @@ const FILES = [
   { path: 'v2/src/main.js',               type: 'js',   pattern: /const APP_VERSION = '[^']*'/ },
   { path: 'index.html',                   type: 'html', pattern: /<div class="sidebar-version"[^>]*>v[^<]*<\/div>/ },
   { path: 'DOCKERHUB.md',                 type: 'notes' },
+  { path: 'CHANGELOG.md',                 type: 'changelog' },
 ];
 
 function usage() {
@@ -82,6 +83,19 @@ function updateDockerHubMarkdown({ version, date, notes }) {
   console.log(`  ✅ DOCKERHUB.md`);
 }
 
+function updateChangelog({ version, date, notes }) {
+  const p = path.join(root, 'CHANGELOG.md');
+  const content = fs.readFileSync(p, 'utf8');
+  const lines = notes.map(n => `- ${n.replace(/^\s*-\s*/, '').trim()}`);
+  const block = `## v${version} · ${date}\n\n${lines.join('\n')}\n`;
+  const next = content.replace(
+    /(# 更新日志 \/ Changelog\n)/,
+    `$1\n${block}\n`,
+  );
+  fs.writeFileSync(p, next, 'utf8');
+  console.log(`  ✅ CHANGELOG.md`);
+}
+
 function updateHtmlVersion(filePath, version) {
   const p = path.join(root, filePath);
   let content = fs.readFileSync(p, 'utf8');
@@ -104,6 +118,7 @@ updateJsPattern('sw.js', /CACHE_PREFIX \+ '-v[^']*'/, v);
 updateJsPattern('v2/src/main.js', /const APP_VERSION = '[^']*'/, v);
 updateHtmlVersion('index.html', v);
 updateDockerHubMarkdown(options);
+updateChangelog(options);
 
 console.log('');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
