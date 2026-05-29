@@ -6,17 +6,17 @@ A local-first personal finance and life-management dashboard for NAS, home serve
 
 ## 最新版本 / Latest Release
 
-**v6.3.1 · 2026-05-29**
+**v6.3.2 · 2026-05-29**
 
 本版重点更新：
 
-- 修复提醒页倒计时实时滚动。
-- 优化提醒过期状态即时判定。
+- Docker Hub 介绍改为中英双语
+- 新增 GitHub 项目 README 与开源仓库说明
 
 Highlights:
 
-- Fixed live countdown refresh on the reminders page.
-- Improved immediate overdue-state detection for reminders.
+- Updated the Docker Hub description with bilingual Chinese and English content.
+- Added the GitHub README and open-source repository description.
 
 ## 功能模块 / Modules
 
