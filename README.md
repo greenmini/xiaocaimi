@@ -4,6 +4,29 @@
 
 XiaoCaiMi is a local-first personal finance and life-management dashboard for NAS, home servers, and local Docker deployments.
 
+## 架构 / Architecture
+
+纯前端 SPA，零构建工具，原生 ES Modules。
+
+```
+src/
+├── core/                # 框架层
+│   ├── dom.js           # HTML 模板引擎 & 工具函数
+│   ├── i18n.js          # 中英双语（zh-CN / en-US）
+│   ├── router.js        # Hash 路由
+│   └── store.js         # 统一状态管理 & localStorage 持久化
+├── modules/             # 业务模块
+│   ├── finance.js       # 财务（Dashboard、交易、账户、分析）
+│   ├── chores.js        # 家务管理（周期任务、成员、完成历史）
+│   ├── reminders.js     # 提醒 & 番茄专注
+│   ├── people.js        # 联系人 & 生日
+│   ├── generic.js       # 通用模块（日历、任务、购物、便签等）
+│   └── settings.js      # 设置（预算、语言、备份导入导出）
+└── main.js              # 应用入口（Shell 渲染、事件绑定、路由）
+```
+
+无框架依赖，仅运行时引入 Chart.js（CDN）用于可选图表。
+
 ## 功能 / Features
 
 ### 核心财务 / Core Finance
@@ -30,6 +53,29 @@ XiaoCaiMi is a local-first personal finance and life-management dashboard for NA
 - PWA：一键安装到桌面，Service Worker 离线缓存。
 - 中英双语：一键切换界面语言。
 - 暗色主题：OLED 深色界面。
+
+---
+
+### Architecture
+
+Pure front-end SPA, zero build tools, native ES Modules. No framework dependencies — only Chart.js (CDN) for optional charts.
+
+```
+src/
+├── core/                # Framework layer
+│   ├── dom.js           # HTML templates & utilities
+│   ├── i18n.js          # Chinese / English bilingual
+│   ├── router.js        # Hash-based router
+│   └── store.js         # Unified state & localStorage persistence
+├── modules/             # Business modules
+│   ├── finance.js       # Finance (Dashboard, Tx, Accounts, Analytics)
+│   ├── chores.js        # Recurring chores & members
+│   ├── reminders.js     # Reminders & Pomodoro timer
+│   ├── people.js        # Contacts & birthdays
+│   ├── generic.js       # Generic (Calendar, Tasks, Shopping, Notes)
+│   └── settings.js      # Settings (budget, locale, backup)
+└── main.js              # App shell, routing, event binding
+```
 
 ---
 

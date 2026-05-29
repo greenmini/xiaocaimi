@@ -144,16 +144,16 @@ This keeps data and backups safe when the container is upgraded or recreated.
 
 ## 技术栈 / Tech Stack
 
-- 纯 HTML / CSS / JavaScript，零框架依赖
-- 分层架构：storageService → Service 层 → UI 组件层
-- 命名空间隔离的 localStorage + 本地数据文件同步接口
+- 纯 HTML / CSS / JavaScript，零构建工具，原生 ES Modules
+- 模块化架构：`src/core/` 框架层（dom / i18n / router / store）+ `src/modules/` 业务模块
+- 统一状态管理 + localStorage 持久化（`xiaocaimi:v2:snapshot`），旧数据自动迁移
 - PWA manifest + Service Worker（版本化缓存管理）
 - Python 3.13 slim 静态服务与同步接口
 - Docker 镜像：`greenmini/xiaocaimi:latest`
 
-- Vanilla HTML / CSS / JavaScript, zero framework
-- Layered architecture: storageService → service layer → UI components
-- Namespaced localStorage plus a local file sync endpoint
+- Vanilla HTML / CSS / JavaScript, zero build tools, native ES Modules
+- Modular architecture: `src/core/` framework layer (dom / i18n / router / store) + `src/modules/` business modules
+- Unified state management + localStorage persistence (`xiaocaimi:v2:snapshot`), automatic legacy migration
 - PWA manifest and Service Worker (versioned cache management)
 - Python 3.13 slim static server and sync API
 - Docker image: `greenmini/xiaocaimi:latest`
