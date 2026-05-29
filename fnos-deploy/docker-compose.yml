@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  xiaocaimi:
+    image: greenmini/xiaocaimi:latest
+    container_name: xiaocaimi
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - SYNC_TOKEN=${SYNC_TOKEN:-}
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./data:/app/data
+    labels:
+      - watchcow.enable=true
+      - watchcow.appname=小财迷
+      - watchcow.service_port=8080
