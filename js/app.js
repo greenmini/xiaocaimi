@@ -21,7 +21,7 @@ function openAddModal(tp) {
   const acSel = el('addAccount');
   const fr    = el('addFromAccount');
   const to    = el('addToAccount');
-  const opts  = data.assets.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+  const opts  = accountService.getOptions();
   acSel.innerHTML = opts;
   fr.innerHTML = opts;
   to.innerHTML = opts;
@@ -107,7 +107,7 @@ function editTx(id) {
   const acSel = el('addAccount');
   const fr = el('addFromAccount');
   const to = el('addToAccount');
-  const opts = data.assets.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+  const opts = accountService.getOptions();
   acSel.innerHTML = opts;
   fr.innerHTML = opts;
   to.innerHTML = opts;
@@ -132,31 +132,17 @@ function submitAdd() {
   const amt = Math.round(parseFloat(el('addAmount').value) * 100) / 100;
   if (!amt || amt <= 0) { showToast('请输入有效金额', 'error'); return; }
 
-  // Edit mode: reverse old transaction first
   let editOriginalDate = null;
   if (editTxId_) {
-    const oldIdx = data.transactions.findIndex(t => t.id === editTxId_);
-    if (oldIdx !== -1) {
-      const old = data.transactions[oldIdx];
+    const old = transactionService.getById(editTxId_);
+    if (old) {
       editOriginalDate = old.date;
-      const oa = data.assets.find(a => a.id === old.account);
-      if (oa) {
-        const mult = oa.type === 'debt' ? -1 : 1;
-        if (old.type === 'income') oa.amount = Math.round((oa.amount - old.amount * mult) * 100) / 100;
-        else if (old.type === 'expense') oa.amount = Math.round((oa.amount + old.amount * mult) * 100) / 100;
-        else if (old.type === 'transfer') {
-          const fa = data.assets.find(a => a.id === old.fromAccount);
-          const ta = data.assets.find(a => a.id === old.toAccount);
-          if (fa) fa.amount = Math.round((fa.amount + old.amount) * 100) / 100;
-          if (ta) ta.amount = Math.round((ta.amount - old.amount) * 100) / 100;
-        }
-      }
-      data.transactions.splice(oldIdx, 1);
+      transactionService.remove(editTxId_);
     }
+    editTxId_ = null;
   }
 
-  const tx = {
-    id: Date.now(),
+  const raw = {
     type: tp,
     amount: amt,
     date: editOriginalDate || new Date().toISOString().split('T')[0],
@@ -168,52 +154,36 @@ function submitAdd() {
   };
 
   if (tp === 'transfer') {
-    const fr = el('addFromAccount').value;
-    const to = el('addToAccount').value;
-    const fa = data.assets.find(a => a.id === fr);
-    const ta = data.assets.find(a => a.id === to);
-    if (fa) fa.amount = Math.round((fa.amount - amt) * 100) / 100;
-    if (ta) ta.amount = Math.round((ta.amount + amt) * 100) / 100;
-    tx.accountName = (fa ? fa.name : fr) + ' → ' + (ta ? ta.name : to);
-    tx.fromAccount = fr;
-    tx.toAccount = to;
+    raw.fromAccount = el('addFromAccount').value;
+    raw.toAccount = el('addToAccount').value;
+    const fa = accountService.getById(raw.fromAccount);
+    const ta = accountService.getById(raw.toAccount);
+    raw.accountName = (fa ? fa.name : raw.fromAccount) + ' → ' + (ta ? ta.name : raw.toAccount);
   } else {
-    const a = data.assets.find(a => a.id === tx.account);
-    if (a) {
-      const mult = a.type === 'debt' ? -1 : 1;
-      if (tp === 'income') a.amount = Math.round((a.amount + amt * mult) * 100) / 100;
-      else a.amount = Math.round((a.amount - amt * mult) * 100) / 100;
-    }
-    tx.accountName = a ? a.name : tx.account;
+    const a = accountService.getById(raw.account);
+    raw.accountName = a ? a.name : raw.account;
   }
 
-  data.transactions.push(tx);
-  // 周期性规则
+  transactionService.add(raw);
+  lastAccount = raw.account;
+
   if (document.getElementById('addRecurring').checked) {
     const rule = {
-      id: 'rec_' + Date.now(),
-      type: tp,
-      amount: amt,
-      category: tx.category,
-      subCategory: tx.subCategory || '',
-      note: el('addNote').value.trim(),
-      account: tx.account,
-      tags: [...selectedTags],
-      freq: document.getElementById('recurringFreq').value,
+      id: 'rec_' + Date.now(), type: tp, amount: amt, category: raw.category,
+      subCategory: raw.subCategory || '', note: raw.note, account: raw.account,
+      tags: [...selectedTags], freq: document.getElementById('recurringFreq').value,
       interval: parseInt(document.getElementById('recurringInterval').value) || 1,
-      nextDate: document.getElementById('recurringStart').value,
-      active: true,
+      nextDate: document.getElementById('recurringStart').value, active: true,
     };
     if (!data.recurringRules) data.recurringRules = [];
     data.recurringRules.push(rule);
   }
-  // 记录上次使用的账户
-  lastAccount = tx.account;
-  // 单笔超限提醒
+
   const threshold = data.settings?.alertThreshold || 0;
   if (threshold > 0 && tp === 'expense' && amt > threshold) {
     showToast(`[超限] 单笔支出 ¥${amt.toFixed(2)} 超限 ¥${threshold}`, 'warn');
   }
+
   saveData();
   closeAddModal();
   render();
@@ -224,29 +194,12 @@ function submitAdd() {
 
 function delTx(id) {
   confirm('确认删除', '删除后30秒内可撤销，确定要删除这条记录吗？', () => {
-    const i = data.transactions.findIndex(t => t.id === id);
-    if (i === -1) return;
-    const t = data.transactions[i];
-    // 保存快照 → 执行删除 → 可撤销
-    commitDelete(); // 先提交之前的待删除
+    const t = transactionService.getById(id);
+    if (!t) return;
+    commitDelete();
     undoStack = { type: 'transaction', id, backup: t, snapshot: JSON.parse(JSON.stringify(data)) };
 
-    // 反向操作资产余额
-    const a = data.assets.find(aa => aa.id === t.account);
-    if (a) {
-      const mult = a.type === 'debt' ? -1 : 1;
-      if (t.type === 'income') a.amount = Math.round((a.amount - t.amount * mult) * 100) / 100;
-      else if (t.type === 'expense') a.amount = Math.round((a.amount + t.amount * mult) * 100) / 100;
-      else if (t.type === 'transfer') {
-        const frId = t.fromAccount || t.account;
-        const toId = t.toAccount;
-        const fa = data.assets.find(aa => aa.id === frId);
-        const ta = data.assets.find(aa => aa.id === toId);
-        if (fa) fa.amount = Math.round((fa.amount + t.amount) * 100) / 100;
-        if (ta) ta.amount = Math.round((ta.amount - t.amount) * 100) / 100;
-      }
-    }
-    data.transactions.splice(i, 1);
+    transactionService.remove(id);
 
     if (!data.trash) data.trash = [];
     data.trash.push({ type: 'transaction', id, item: t, deletedAt: new Date().toISOString() });
@@ -300,15 +253,9 @@ function submitAsset() {
   const ico = ICONS[selectedIconIdx] || ICONS[0];
   if (!n) { showToast('请输入账户名称', 'error'); return; }
   if (editAsset_) {
-    editAsset_.name  = n;
-    editAsset_.amount = amt;
-    editAsset_.type = el('assetType') ? el('assetType').value : 'cash';
-    editAsset_.icon  = ico;
-    if (el('assetArchived')) editAsset_.isArchived = el('assetArchived').checked;
+    accountService.update(editAsset_.id, { name: n, amount: amt, type: el('assetType')?.value || 'cash', icon: ico, isArchived: el('assetArchived')?.checked || false });
   } else {
-    const newAsset = { id: 'asset_' + Date.now(), name: n, amount: amt, icon: ico, color: '#4d9fff', type: el('assetType') ? el('assetType').value : 'cash' };
-    if (el('assetArchived')) newAsset.isArchived = el('assetArchived').checked;
-    data.assets.push(newAsset);
+    accountService.add({ name: n, amount: amt, icon: ico, color: '#4d9fff', type: el('assetType')?.value || 'cash', isArchived: el('assetArchived')?.checked || false });
   }
   saveData();
   closeAssetModal();
@@ -321,7 +268,7 @@ function submitDeleteAsset() {
   confirm('确认删除', `删除「${editAsset_.name}」？余额 ${editAsset_.amount?.toFixed(2) || '0.00'} 将从总资产移除。30秒内可撤销。`, () => {
     commitDelete();
     undoStack = { type: 'asset', id: editAsset_.id, backup: editAsset_, snapshot: JSON.parse(JSON.stringify(data)) };
-    data.assets = data.assets.filter(a => a.id !== editAsset_.id);
+    accountService.remove(editAsset_.id);
     showUndoToast('已删除', '撤销', () => doUndo());
     undoTimeout = setTimeout(commitDelete, 30000);
     saveData();

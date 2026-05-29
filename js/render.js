@@ -4,7 +4,7 @@
  */
 
 function render() {
-  const t = total(), m = mStats(0), l = budgetLeft(), td = todayStats();
+  const t = analyticsService.total(), m = analyticsService.mStats(0), l = analyticsService.budgetLeft(), td = analyticsService.todayStats();
 
   el('totalAssets').textContent = fmt(t);
   el('monthIncome').textContent  = fmt(m.inc);
@@ -94,7 +94,7 @@ function render() {
 function renderAssetBars() {
   const el = document.getElementById('assetBars');
   if (!el) return;
-  const activeAssets = data.assets.filter(a => !a.isArchived);
+  const activeAssets = accountService.getAll().filter(a => !a.isArchived);
   const total = activeAssets.reduce((s, a) => s + (a.type === 'debt' ? -(a.amount || 0) : (a.amount || 0)), 0);
   const sorted = [...activeAssets].sort((a, b) => {
     const va = a.type === 'debt' ? -(a.amount || 0) : (a.amount || 0);
@@ -438,12 +438,11 @@ function renderCats() {
 }
 
 function renderAnalysis() {
-  // KPI bar
   const now = new Date();
   const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const mt = data.transactions.filter(t => t.date && t.date.startsWith(ym));
-  const exp = mt.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-  const inc = mt.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const month = analyticsService.monthlySummary(0);
+  const exp = month.exp;
+  const inc = month.inc;
   const bal = inc - exp;
   const budPct = data.budget ? (exp / data.budget * 100) : 0;
 

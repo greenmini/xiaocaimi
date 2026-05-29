@@ -12,16 +12,16 @@
 const StorageService = (() => {
   const storeRegistry = new Map();
   const MODULE_KEYS = [
-    'finance-os-contacts',
-    'finance-os-tasks',
-    'finance-os-notes',
-    'finance-os-reminders',
-    'finance-os-calendar',
-    'finance-os-shopping-lists',
-    'finance-os-shopping-items',
-    'finance-os-documents',
-    'finance-os-recipes',
-    'finance-os-meals',
+    'v1:contacts',
+    'v1:tasks',
+    'v1:notes',
+    'v1:reminders',
+    'v1:calendar',
+    'v1:shopping-lists',
+    'v1:shopping-items',
+    'v1:documents',
+    'v1:recipes',
+    'v1:meals',
   ];
 
   // ─── 底层读写 ────────────────────────────────
@@ -38,6 +38,13 @@ const StorageService = (() => {
     return ok;
   }
 
+  const KEY_ALIAS = {
+    'finance-os-contacts':'v1:contacts','finance-os-tasks':'v1:tasks','finance-os-notes':'v1:notes',
+    'finance-os-reminders':'v1:reminders','finance-os-calendar':'v1:calendar',
+    'finance-os-shopping-lists':'v1:shopping-lists','finance-os-shopping-items':'v1:shopping-items',
+    'finance-os-documents':'v1:documents','finance-os-recipes':'v1:recipes','finance-os-meals':'v1:meals',
+  };
+
   function snapshotModules() {
     const modules = {};
     MODULE_KEYS.forEach(key => {
@@ -49,9 +56,10 @@ const StorageService = (() => {
 
   function restoreModules(modules = {}) {
     Object.entries(modules).forEach(([key, value]) => {
-      if (MODULE_KEYS.includes(key)) {
-        _write(key, value);
-        storeRegistry.get(key)?.reload();
+      const targetKey = KEY_ALIAS[key] || key;
+      if (MODULE_KEYS.includes(targetKey)) {
+        _write(targetKey, value);
+        storeRegistry.get(targetKey)?.reload();
       }
     });
   }

@@ -1,33 +1,11 @@
-/**
- * 交易服务 · Transaction Service
- *
- * 交易流水与账户余额联动：
- *   - 新增收入 → 账户余额增加
- *   - 新增支出 → 账户余额减少
- *   - 转账 → 一方减少，另一方增加
- *   - 编辑交易 → 按差额修正
- *   - 删除交易 → 回滚账户余额
- */
 const transactionService = (() => {
-  function _tx() {
-    return window.data?.transactions || [];
-  }
+  const LIABILITY_TYPES = new Set(['credit','debt']);
 
-  function _assets() {
-    return window.data?.assets || [];
-  }
-
-  function _funds() {
-    return window.data?.funds || [];
-  }
-
-  function _save() {
-    if (typeof saveData === 'function') saveData();
-  }
-
-  function _genId() {
-    return 'tx_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-  }
+  function _tx() { return window.data?.transactions || []; }
+  function _assets() { return window.data?.assets || []; }
+  function _funds() { return window.data?.funds || []; }
+  function _save() { if (typeof saveData === 'function') saveData(); }
+  function _genId() { return Date.now(); }
 
   function makeTransaction(raw) {
     return {
@@ -35,47 +13,37 @@ const transactionService = (() => {
       type: raw.type || 'expense',
       amount: Number(raw.amount) || 0,
       category: raw.category || '',
-      accountId: raw.accountId || '',
-      fromAccountId: raw.fromAccountId || '',
-      toAccountId: raw.toAccountId || '',
+      subCategory: raw.subCategory || '',
+      account: raw.account || raw.accountId || '',
+      accountName: raw.accountName || '',
+      fromAccount: raw.fromAccount || raw.fromAccountId || '',
+      toAccount: raw.toAccount || raw.toAccountId || '',
       date: raw.date || new Date().toISOString().slice(0,10),
       note: raw.note || '',
+      tags: raw.tags || [],
       recurring: raw.recurring || '',
+      isAdjustment: raw.isAdjustment || false,
       crud: raw.crud || new Date().toISOString(),
     };
   }
 
-  function getAll() {
-    return _tx();
-  }
-
-  function getById(id) {
-    return _tx().find(t => t.id === id) || null;
-  }
-
-  function getByAccount(accountId, limit) {
-    const all = _tx().filter(t => t.accountId === accountId || t.fromAccountId === accountId || t.toAccountId === accountId);
-    all.sort((a, b) => b.date.localeCompare(a.date) || b.crud?.localeCompare?.(a.crud) || 0);
-    return limit ? all.slice(0, limit) : all;
-  }
-
-  function getByMonth(year, month) {
-    const ym = `${year}-${String(month).padStart(2, '0')}`;
-    return _tx().filter(t => typeof t.date === 'string' && t.date.startsWith(ym));
+  function _debtMultiplier(accountId) {
+    const a = _assets().find(aa => aa.id === accountId);
+    return a && LIABILITY_TYPES.has(a.type) ? -1 : 1;
   }
 
   function _applyToLedger(tx, multiplier) {
     const assets = _assets();
     if (tx.type === 'transfer') {
-      const from = assets.find(a => a.id === tx.fromAccountId);
-      const to = assets.find(a => a.id === tx.toAccountId);
-      if (from) from.amount = Number(from.amount) - (Number(tx.amount) * multiplier);
-      if (to) to.amount = Number(to.amount) + (Number(tx.amount) * multiplier);
+      const from = assets.find(a => a.id === (tx.fromAccount || tx.account));
+      const to = assets.find(a => a.id === tx.toAccount);
+      if (from) from.amount = Math.round((Number(from.amount) - Number(tx.amount) * multiplier) * 100) / 100;
+      if (to) to.amount = Math.round((Number(to.amount) + Number(tx.amount) * multiplier) * 100) / 100;
     } else {
-      const account = assets.find(a => a.id === tx.accountId);
+      const account = assets.find(a => a.id === tx.account);
       if (!account) return;
       const sign = tx.type === 'expense' ? -1 : 1;
-      account.amount = Number(account.amount) + (Number(tx.amount) * sign * multiplier);
+      account.amount = Math.round((Number(account.amount) + Number(tx.amount) * sign * multiplier) * 100) / 100;
     }
   }
 
@@ -94,14 +62,8 @@ const transactionService = (() => {
     const old = txs[idx];
     const updated = makeTransaction({ ...raw, id });
 
-    if (old.accountId === updated.accountId && old.type === updated.type && old.fromAccountId === updated.fromAccountId && old.toAccountId === updated.toAccountId) {
-      const diff = Number(updated.amount) - Number(old.amount);
-      const tempTx = { ...old, amount: diff };
-      _applyToLedger(tempTx, 1);
-    } else {
-      _applyToLedger(old, -1);
-      _applyToLedger(updated, 1);
-    }
+    _applyToLedger(old, -1);
+    _applyToLedger(updated, 1);
 
     txs[idx] = updated;
     _save();
@@ -120,45 +82,45 @@ const transactionService = (() => {
 
   function addFundOperation(raw) {
     const tx = makeTransaction(raw);
-    const funds = _funds();
     const assets = _assets();
-    const account = assets.find(a => a.id === tx.accountId);
+    const funds = _funds();
+    const account = assets.find(a => a.id === tx.account);
     if (!account) throw new Error('未选择资金账户');
 
     if (tx.type === 'fundBuy') {
-      account.amount = Number(account.amount) - Number(tx.amount);
-      const fundId = tx.fromAccountId || 'fund_' + Date.now().toString(36);
+      account.amount = Math.round((Number(account.amount) - Number(tx.amount)) * 100) / 100;
+      const fundId = tx.fromAccount || 'fund_' + Date.now().toString(36);
       let fund = funds.find(f => f.id === fundId);
       if (!fund) {
         fund = { id: fundId, name: tx.note || '基金', cost: 0, value: 0 };
         funds.push(fund);
       }
-      fund.cost = Number(fund.cost) + Number(tx.amount);
-      fund.value = Number(fund.value) + Number(tx.amount);
+      fund.cost = Math.round((Number(fund.cost) + Number(tx.amount)) * 100) / 100;
+      fund.value = Math.round((Number(fund.value) + Number(tx.amount)) * 100) / 100;
     } else if (tx.type === 'fundSell') {
-      account.amount = Number(account.amount) + Number(tx.amount);
-      const fund = funds.find(f => f.id === tx.fromAccountId);
+      account.amount = Math.round((Number(account.amount) + Number(tx.amount)) * 100) / 100;
+      const fund = funds.find(f => f.id === tx.fromAccount);
       if (fund) {
-        fund.cost = Math.max(0, Number(fund.cost) - Number(tx.amount));
-        fund.value = Math.max(0, Number(fund.value) - Number(tx.amount));
+        fund.cost = Math.max(0, Math.round((Number(fund.cost) - Number(tx.amount)) * 100) / 100);
+        fund.value = Math.max(0, Math.round((Number(fund.value) - Number(tx.amount)) * 100) / 100);
       }
     }
-
     _tx().push(tx);
     _save();
     return tx;
   }
 
+  function getAll() { return _tx(); }
+  function getById(id) { return _tx().find(t => t.id === id) || null; }
+  function getByMonth(year, month) {
+    const ym = `${year}-${String(month).padStart(2, '0')}`;
+    return _tx().filter(t => typeof t.date === 'string' && t.date.startsWith(ym));
+  }
   function getRecent(limit) {
     const all = [..._tx()];
-    all.sort((a, b) => b.date.localeCompare(a.date) || (b.crud || '').localeCompare(a.crud || ''));
+    all.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.crud || '').localeCompare(a.crud || ''));
     return all.slice(0, limit || 10);
   }
 
-  return {
-    getAll, getById, getByAccount, getByMonth, getRecent,
-    add, update, remove,
-    addFundOperation, makeTransaction,
-    _applyToLedger,
-  };
+  return { getAll, getById, getByMonth, getRecent, add, update, remove, addFundOperation, makeTransaction };
 })();

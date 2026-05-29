@@ -60,9 +60,9 @@ async function loadData() {
 
   // 2. 尝试 localStorage
   try {
-    const s = localStorage.getItem('financeData');
+    const s = storageService.get('v1:finance');
     if (s) {
-      data = JSON.parse(s);
+      data = typeof s === 'string' ? JSON.parse(s) : s;
       if (data && data.assets && data.assets.length > 0) {
         ensureDefaults();
         restoreModulesFromData();
@@ -115,7 +115,7 @@ async function saveData() {
 
     // localStorage 先写，保证常规输入立即持久化。
     try {
-      localStorage.setItem('financeData', JSON.stringify(data));
+      storageService.set('v1:finance', data);
       saved = true;
     } catch (e) {
       console.warn('localStorage 保存失败:', e.message);
