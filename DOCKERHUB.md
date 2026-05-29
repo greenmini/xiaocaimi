@@ -27,43 +27,61 @@ Highlights:
 
 ### 核心财务 / Core Finance
 
-- 仪表盘：总资产、月度收入、月度支出、预算状态、近期流水。
-- 交易记录：收入 / 支出记账、分类、日期、备注、账户绑定。
-- 账户资产：多账户管理，支持现金、银行卡、支付账户、基金、股票、医保、信用卡和负债。
-- 数据分析：收支趋势、分类排行、图表摘要。
-
-- Dashboard: total assets, monthly income, monthly expense, budget status, and recent activity.
-- Transactions: income and expense records with categories, dates, notes, and linked accounts.
-- Accounts: cash, bank cards, payment wallets, funds, stocks, medical insurance, credit cards, and liabilities.
-- Analytics: cash-flow trends, category rankings, and chart summaries.
+- 仪表盘：总资产、本月收入、本月支出、预算剩余、今日统计，四连 KPI + 近期流水 + 资产分布
+- 交易记录：收入 / 支出 / 转账记账，分类、标签、备注、周期性规则，支持编辑和撤销删除
+- 账户资产：多类型（现金、银行卡、支付宝、微信、基金、股票、医保、信用卡、负债），净值摘要 + 占比条可视化，手动调余额自动生成调整记录
+- 数据分析：近 6 月收支趋势、分类排行、预算使用率
+- 账户余额联动：新增 / 编辑 / 删除交易时自动同步账户余额（收入+ / 支出- / 删除回滚 / 编辑差额修正）
+- 基金投资：买入从资金账户扣款，卖出回到账户，自动核算成本和市值
 
 ### 生活管理 / Life Management
 
-- 日历事件
-- 任务看板
-- 提醒中心
-- 番茄专注
-- 家务管理
-- 购物清单
-- 餐食计划
-
-- Calendar events
-- Kanban tasks
-- Reminder center
-- Pomodoro focus
-- Household chores
-- Shopping lists
-- Meal planning
+- 家务管理：周期性家庭任务，支持每几天 / 每周 / 每几周 / 每月 / 每几个月重复，成员分配，完成历史（折叠展示），筛选与统计
+- 任务看板：三列拖拽（待办 / 进行中 / 已完成）
+- 提醒中心：一次性 / 周期提醒，番茄专注联动
+- 日历、购物清单、餐食计划
 
 ### 资料库 / Library
 
-- 便签
-- 联系人
-- 生日提醒
+- 便签、联系人（含生日提醒）
 
-- Notes
-- Contacts
-- Birthday reminders
+### 通用 / General
+
+- 本地优先：默认浏览器 localStorage + Docker volume 绑定的 data/ 目录，无后端依赖可离线使用
+- PWA：一键安装到桌面，Service Worker 离线缓存
+- 中英双语：界面一键切换
+- 暗色主题：OLED 深色界面，统一设计令牌（Linear / Raycast 风格）
+- 版本号显示 + 强制刷新（清除 SW 缓存并硬重载）
+
+---
+
+### Core Finance
+
+- Dashboard: total assets, monthly income/expense, budget remaining, today's stats — 4-KPI layout with recent transactions and asset distribution
+- Transactions: income/expense/transfer with categories, tags, notes, recurring rules, edit support and undo-delete
+- Accounts: multi-type support (cash, bank, Alipay, WeChat, fund, stock, medical, credit, debt) with net-worth summary, share bars, and adjustment records on manual balance changes
+- Analytics: 6-month trends, category breakdown, budget usage
+- Auto-sync ledger: account balance updates on every CRUD (income adds, expense subtracts, delete rolls back, edit applies delta)
+- Fund investment: buy deducts from account, sell returns to account, cost and market value auto-tracked
+
+### Life Management
+
+- Chores: recurring household tasks (every N days / weekly / bi-weekly / monthly / every N months), member assignment, collapseable completion history, filters and stats
+- Tasks: three-column Kanban (todo / in-progress / done)
+- Reminders: one-time and recurring, Pomodoro timer integration
+- Calendar, Shopping Lists, and Meal Planning
+
+### Library
+
+- Notes, Contacts with birthday reminders
+
+### General
+
+- Local-first: browser localStorage + Docker volume bind-mounted data/ directory, works fully offline
+- PWA: install to desktop, Service Worker offline caching
+- Bilingual: Chinese/English toggle
+- Dark theme: OLED-inspired interface with unified design tokens (Linear / Raycast style)
+- Version badge + Force Refresh (clear SW cache and hard reload)
 
 ## 快速部署 / Quick Start
 
@@ -125,15 +143,17 @@ This keeps data and backups safe when the container is upgraded or recreated.
 
 ## 技术栈 / Tech Stack
 
-- 纯 HTML / CSS / JavaScript
-- localStorage + 本地数据文件同步接口
-- PWA manifest + Service Worker
+- 纯 HTML / CSS / JavaScript，零框架依赖
+- 分层架构：storageService → Service 层 → UI 组件层
+- 命名空间隔离的 localStorage + 本地数据文件同步接口
+- PWA manifest + Service Worker（版本化缓存管理）
 - Python 3.13 slim 静态服务与同步接口
 - Docker 镜像：`greenmini/xiaocaimi:latest`
 
-- Vanilla HTML / CSS / JavaScript
-- localStorage plus a local file sync endpoint
-- PWA manifest and Service Worker
+- Vanilla HTML / CSS / JavaScript, zero framework
+- Layered architecture: storageService → service layer → UI components
+- Namespaced localStorage plus a local file sync endpoint
+- PWA manifest and Service Worker (versioned cache management)
 - Python 3.13 slim static server and sync API
 - Docker image: `greenmini/xiaocaimi:latest`
 
