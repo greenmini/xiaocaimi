@@ -1,14 +1,11 @@
 /**
- * 联系人模块 · contactsService
+ * 联系人模块 · Contact UI
  * 小财迷 · Contacts
  *
  * 数据流:
- *   所有 CRUD → contactsService → localStorage("finance-os-contacts")
- *   页面加载 → contactsService.getAll() → 渲染
- *   永不使用 data.contacts / API / 空数组兜底
+ *   所有 CRUD → contactService → StorageService → localStorage
+ *   页面加载 → contactService.getAll() → 渲染
  */
-
-const contactsService = StorageService.createStore('finance-os-contacts', 'ct');
 
 // ─── 渲染 ──────────────────────────────────────────
 

@@ -1,12 +1,11 @@
 /**
- * 便签模块 · notesService
+ * 便签模块 · Notes
  * 小财迷 · Notes
  *
  * 数据流:
- *   所有 CRUD → notesService → localStorage("finance-os-notes")
+ *   所有 CRUD → notesService → StorageService → localStorage
  */
 
-const notesService = StorageService.createStore('finance-os-notes', 'note');
 const NOTE_COLORS = ['#00f5d4','#ff2d78','#f0e140','#4d9fff','#a855f7','#ff9500','#34c759'];
 
 function renderNotes() {

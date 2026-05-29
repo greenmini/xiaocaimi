@@ -1,12 +1,10 @@
 /**
- * 任务管理模块 · tasksService
+ * 任务管理模块 · Tasks
  * 小财迷 · Tasks
  *
  * 数据流:
- *   所有 CRUD → tasksService → localStorage("finance-os-tasks")
+ *   所有 CRUD → tasksService → StorageService → localStorage
  */
-
-const tasksService = StorageService.createStore('finance-os-tasks', 'task');
 
 const TASK_STATUS = ['open','in_progress','done'];
 const TASK_LABELS = { open:'待办', in_progress:'进行中', done:'已完成' };
