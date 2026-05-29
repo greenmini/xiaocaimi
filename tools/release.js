@@ -73,7 +73,7 @@ function updateVersionFile({ version, date, minAppVersion }) {
 function updateDockerHubMarkdown({ version, date, notes }) {
   const markdown = fs.readFileSync(dockerHubPath, 'utf8');
   const nextBlock = [
-    '## 最新版本',
+    '## 最新版本 / Latest Release',
     '',
     `**v${version} · ${date}**`,
     '',
@@ -81,10 +81,14 @@ function updateDockerHubMarkdown({ version, date, notes }) {
     '',
     ...notes.map(note => `- ${note.replace(/^\s*-\s*/, '').trim()}`),
     '',
+    'Highlights:',
+    '',
+    ...notes.map(note => `- ${note.replace(/^\s*-\s*/, '').trim()}`),
+    '',
   ].join('\n');
 
   const next = markdown.replace(
-    /## 最新版本[\s\S]*?(?=\n## 功能模块)/,
+    /## 最新版本(?: \/ Latest Release)?[\s\S]*?(?=\n## 功能模块 \/ Modules)/,
     nextBlock,
   );
   if (next === markdown) {
