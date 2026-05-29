@@ -6,18 +6,21 @@ A local-first personal finance and life-management dashboard for NAS, home serve
 
 ## 最新版本 / Latest Release
 
-**v6.3.2 · 2026-05-29**
+**v6.4 · 2026-05-29**
 
 本版重点更新：
 
-- 账户资产页面重构：顶部新增净资产 / 总资产 / 总负债摘要，账户改为彩色类型卡片 + 占比条，表单收折到「快捷操作」栏，主次分明
-- 家务完成历史折叠：默认仅展示最近 5 条，超过时显示「展开剩余 N 条」，避免页面无限拉长
-- 项目清理：删除旧版本备份代码、遗留文档和临时文件，项目结构精简至纯生产版本
+- 架构重构：新增统一存储层 storageService，所有 localStorage 读写使用命名空间 xiaocaimi:*，旧数据自动迁移
+- 业务 Service 层：accountService / transactionService / analyticsService / contactService / taskService / noteService，页面组件不再直接操作数据
+- 账户资金闭环：账户余额联动正确（收入+/支出-/回滚），手动调余额生成调整记录
+- Dashboard 统一数据源：KPI、走势、分类均来自 analyticsService 实时计算
 
 Highlights:
 
-- Accounts page redesign: net worth / assets / liabilities summary bar, color-coded account cards with share bars, collapsible action forms with tab switching
-- Chore completion history collapsible: shows only latest 5 entries by default, with expand/collapse toggle
+- Architecture refactor: unified storage layer with namespace xiaocaimi:*, automatic legacy key migration
+- Business service layer: accountService, transactionService, analyticsService, contactService, taskService, noteService
+- Closed-loop finance: balance auto-sync on CRUD, adjustment records on manual changes
+- Single source of truth: all Dashboard numbers from analyticsService real-time calculation
 - Codebase cleanup: removed legacy backups, old server scripts, debug files, and temp descriptors — production-only structure
 
 ## 功能模块 / Modules

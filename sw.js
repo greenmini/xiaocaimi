@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════ */
 
 const CACHE_PREFIX = 'xiaocaimi';
-const STATIC_CACHE = CACHE_PREFIX + '-v6.2';
+const STATIC_CACHE = CACHE_PREFIX + '-v6.4';
 const DYNAMIC_CACHE = CACHE_PREFIX + '-dynamic';
 
 const STATIC_ASSETS = [

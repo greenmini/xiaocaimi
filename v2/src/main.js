@@ -9,7 +9,7 @@ import { bindPeopleActions, renderBirthdays, renderContacts } from './modules/pe
 import { bindReminderActions, renderReminders, startReminderRuntime } from './modules/reminders.js';
 import { bindSettingsActions, bindSettingsFileImport, renderSettings } from './modules/settings.js';
 
-const APP_VERSION = '6.3.2';
+const APP_VERSION = '6.4';
 
 async function forceRefresh() {
   if ('caches' in window) {
