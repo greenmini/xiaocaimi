@@ -101,6 +101,7 @@
                 <span>EN</span>
             </button>
         </div>
+        <div class="sidebar-version" id="sidebarVersion">v6.3.2</div>
     </div>
 </aside>
 
@@ -462,6 +463,12 @@
                 <div class="setting-row"><div class="setting-label">导入数据<small>从JSON恢复</small></div><button class="quick-btn secondary" onclick="importData()">导入</button></div>
                 <div class="setting-row"><div class="setting-label">导出月报<small>PDF打印</small></div><button class="quick-btn info" onclick="exportMonthReport()">导出</button></div>
             </div>
+            <div class="setting-group"><h3>强制刷新</h3>
+                <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+                    <div class="setting-label">清除缓存更新<small>清除浏览器缓存和 Service Worker，强制加载最新版本。不影响已保存的数据。</small></div>
+                    <button class="quick-btn danger" onclick="forceRefresh()">强制刷新</button>
+                </div>
+            </div>
             <div class="setting-group"><h3>AI 分析配置</h3>
                 <div class="setting-row"><div class="setting-label">接口地址<small>OpenAI兼容API</small></div><input type="url" id="settingAiEndpoint" class="setting-input setting-input-wide" placeholder="https://api.xxx.com/v1" onchange="saveSetting('financeAiEndpoint',this.value)"></div>
                 <div class="setting-row"><div class="setting-label">模型名称</div><input type="text" id="settingAiModel" class="setting-input" placeholder="mimo-v2.5" onchange="saveSetting('financeAiModel',this.value)"></div>
@@ -705,6 +712,7 @@
 <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileImport(event)">
 
 <!-- Scripts -->
+<script src="js/storage-service.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/storage.js"></script>

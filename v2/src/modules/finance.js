@@ -452,7 +452,7 @@ export function renderAccounts() {
           const profitPct = fund.cost > 0 ? Math.round((profit / money(fund.cost)) * 100) : 0;
           return `<div class="fund-card">
             <div class="fund-card-head">
-              <div class="fund-icon"></div>
+              <div class="fund-icon" style="background:${profit >= 0 ? '#6fbf73' : '#d49595'}"></div>
               <div class="fund-info">
                 <div class="list-title">${escapeHtml(fund.name)}</div>
                 <div class="dim">${t('fundCost')} ${currency(fund.cost)}</div>
@@ -873,6 +873,10 @@ export function bindFinanceActions(event) {
     });
     return true;
   }
+
+  const actionTarget = event.target.closest('[data-action]');
+  if (!actionTarget) return false;
+  const action = actionTarget.dataset.action;
 
   if (action === 'toggle-account-forms') {
     accountFormsExpanded = !accountFormsExpanded;

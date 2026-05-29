@@ -320,6 +320,15 @@ body {
 }
 .theme-toggle svg { width: 14px; height: 14px; }
 
+.sidebar-version {
+  color: rgba(148, 163, 184, .28);
+  font-size: 10px;
+  font-family: var(--font-mono);
+  padding: 6px 6px 2px;
+  text-align: right;
+  letter-spacing: 0.5px;
+}
+
 /* ═══════════════════════════════════════════════
    MAIN CONTENT
    ═══════════════════════════════════════════════ */

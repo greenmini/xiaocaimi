@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 初始化语言
   bootStep('initLocale', () => {
-    const saved = localStorage.getItem('financeLocale');
+    const saved = storageService.get('v1:locale');
     if (saved && LOCALES[saved]) _locale = saved;
     updateLangBtn();
     applyLocale(getLocale());

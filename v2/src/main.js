@@ -1,6 +1,6 @@
 import { createRouter } from './core/router.js';
 import { getState, loadState, subscribe } from './core/store.js';
-import { html } from './core/dom.js';
+import { escapeHtml, html } from './core/dom.js';
 import { t, toggleLocale } from './core/i18n.js';
 import { bindFinanceActions, renderAccounts, renderAnalysis, renderDashboard, renderRecords } from './modules/finance.js';
 import { bindChoreActions, renderChores } from './modules/chores.js';
@@ -8,6 +8,20 @@ import { bindGenericActions, genericModules, renderGeneric } from './modules/gen
 import { bindPeopleActions, renderBirthdays, renderContacts } from './modules/people.js';
 import { bindReminderActions, renderReminders, startReminderRuntime } from './modules/reminders.js';
 import { bindSettingsActions, bindSettingsFileImport, renderSettings } from './modules/settings.js';
+
+const APP_VERSION = '6.3.2';
+
+async function forceRefresh() {
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    for (const key of keys) await caches.delete(key);
+  }
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const reg of registrations) await reg.unregister();
+  }
+  window.location.reload(true);
+}
 
 function buildRouteGroups() {
   return [
@@ -110,6 +124,7 @@ function renderShell() {
             ${Object.entries(group.routes).map(([id, item]) => navItem(id, item)).join('')}
           </div>
         `).join('')}
+        <div class="nav-version">v${escapeHtml(APP_VERSION)}</div>
       </div>
     </aside>
     <main class="main">
@@ -170,6 +185,12 @@ function bindEvents() {
     if (bindFinanceActions(event) || bindChoreActions(event) || bindReminderActions(event) || bindPeopleActions(event) || bindGenericActions(event) || bindSettingsActions(event)) {
       rerender();
       toast(t('saved'));
+      return;
+    }
+
+    if (event.target.closest('[data-action="force-refresh"]')) {
+      if (confirm(t('forceRefreshConfirm'))) forceRefresh();
+      return;
     }
   });
 

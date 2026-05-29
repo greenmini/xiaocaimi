@@ -129,6 +129,13 @@ textarea { min-height: 88px; resize: vertical; }
   padding: 8px 2px 0;
   border-top: 1px solid rgba(255, 255, 255, .07);
 }
+.nav-version {
+  color: rgba(148, 163, 184, .35);
+  font-size: 11px;
+  font-family: var(--mono);
+  padding: 6px 10px 8px;
+  text-align: right;
+}
 .nav-group { margin: 10px 0 14px; }
 .nav-title {
   color: rgba(148, 163, 184, .58);
@@ -234,7 +241,7 @@ textarea { min-height: 88px; resize: vertical; }
   color: var(--text);
 }
 .primary { background: var(--accent); border-color: var(--accent); }
-.danger { color: #fecaca; border-color: rgba(239,68,68,.35); }
+.danger { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); color: #fecaca; }
 .link-btn {
   background: none;
   border: none;

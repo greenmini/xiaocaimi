@@ -25,6 +25,14 @@ export function renderSettings() {
       </div>
       <p class="muted">${t('backupHint')}</p>
     </section>
+    <section class="card" style="margin-top:14px">
+      <h3>${t('forceRefresh')}</h3>
+      <p class="muted">${t('forceRefreshDesc')}</p>
+      <div class="actions" style="margin-top:10px">
+        <button class="danger" data-action="force-refresh">${t('forceRefresh')}</button>
+      </div>
+      <p class="dim" style="margin-top:6px">${t('forceRefreshHint')}</p>
+    </section>
   `;
 }
 

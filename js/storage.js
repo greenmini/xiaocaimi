@@ -27,28 +27,15 @@ const StorageService = (() => {
   // ─── 底层读写 ────────────────────────────────
 
   function _read(key) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw === null) return null;
-      return JSON.parse(raw);
-    } catch (e) {
-      console.error(`[storage] 读取 ${key} 失败:`, e.message);
-      return null;
-    }
+    return storageService.get(key);
   }
 
   function _write(key, data) {
-    try {
-      const json = JSON.stringify(data);
-      localStorage.setItem(key, json);
-      if (MODULE_KEYS.includes(key) && typeof scheduleModuleSync === 'function') {
-        scheduleModuleSync();
-      }
-      return true;
-    } catch (e) {
-      console.error(`[storage] 写入 ${key} 失败:`, e.message);
-      return false;
+    const ok = storageService.set(key, data);
+    if (ok && MODULE_KEYS.includes(key) && typeof scheduleModuleSync === 'function') {
+      scheduleModuleSync();
     }
+    return ok;
   }
 
   function snapshotModules() {

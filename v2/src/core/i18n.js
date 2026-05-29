@@ -35,6 +35,12 @@ const dictionaries = {
     routeSettingsSubtitle: '同步、备份和基础参数',
     manageSuffix: '管理',
 
+    version: '版本',
+    forceRefresh: '强制刷新',
+    forceRefreshDesc: '清除浏览器缓存和 Service Worker，强制加载最新版本。不会影响已保存的数据。',
+    forceRefreshConfirm: '确定要强制刷新吗？这会清除缓存并重新加载页面，但不会丢失数据。',
+    forceRefreshHint: '如果页面显示异常或更新后仍看到旧版本，请使用此功能。',
+
     totalAssets: '总资产',
     netWorth: '净资产',
     totalLiabilities: '总负债',
@@ -298,6 +304,12 @@ const dictionaries = {
     routeSettings: 'Settings',
     routeSettingsSubtitle: 'Sync, backup, and basic preferences',
     manageSuffix: 'management',
+
+    version: 'Version',
+    forceRefresh: 'Force Refresh',
+    forceRefreshDesc: 'Clear browser cache and Service Worker to load the latest version. Your data will not be affected.',
+    forceRefreshConfirm: 'Are you sure? This will clear the cache and reload the page, but your data will not be lost.',
+    forceRefreshHint: 'Use this if you see display issues or an outdated version after updating.',
 
     totalAssets: 'Total Assets',
     netWorth: 'Net Worth',

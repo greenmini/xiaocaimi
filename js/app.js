@@ -705,7 +705,7 @@ function getSyncBaseUrl() {
 async function syncToServer() {
   try {
     const hdrs = { 'Content-Type': 'application/json' };
-    const token = data.settings?.syncToken || localStorage.getItem('financeSyncToken');
+    const token = data.settings?.syncToken || storageService.get('v1:syncToken');
     if (token) hdrs['Authorization'] = 'Bearer ' + token;
     const baseUrl = getSyncBaseUrl();
     const r = await fetch(baseUrl + '/api/data', {
@@ -722,7 +722,7 @@ async function syncToServer() {
 async function syncFromServer() {
   try {
     const hdrs = {};
-    const token = data.settings?.syncToken || localStorage.getItem('financeSyncToken');
+    const token = data.settings?.syncToken || storageService.get('v1:syncToken');
     if (token) hdrs['Authorization'] = 'Bearer ' + token;
     const baseUrl = getSyncBaseUrl();
     const r = await fetch(baseUrl + '/api/data', { headers: hdrs });
@@ -757,7 +757,7 @@ async function testAiConnection() {
   try {
     const endpoint = data.settings?.financeAiEndpoint || 'https://token-plan-cn.xiaomimimo.com/v1';
     const model = data.settings?.financeAiModel || 'mimo-v2.5';
-    const apiKey = data.settings?.financeAiKey || localStorage.getItem('financeAiKey') || '';
+    const apiKey = data.settings?.financeAiKey || storageService.get('v1:aiKey') || '';
 
     if (!apiKey) {
       res.innerHTML = '<div style="color:var(--yellow)">[错误] 请先填写 API Key</div>';
@@ -821,7 +821,7 @@ async function aiAnalyze() {
       s += `- ${t.date} ${t.type === 'expense' ? '支出' : '收入'} ${t.category || ''} ¥${t.amount.toFixed(2)} ${t.note || ''}\n`;
     });
 
-    const apiKey = data.settings?.financeAiKey || localStorage.getItem('financeAiKey') || '';
+    const apiKey = data.settings?.financeAiKey || storageService.get('v1:aiKey') || '';
     if (!apiKey) {
       r.innerHTML = '<div style="color:var(--yellow);padding:12px;">请先在设置页配置 AI API Key</div>';
       btn.disabled = false;
@@ -933,4 +933,16 @@ function renderAccountDetail(id) {
   }
 
   el2.innerHTML = html;
+}
+
+async function forceRefresh() {
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    for (const key of keys) await caches.delete(key);
+  }
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const reg of registrations) await reg.unregister();
+  }
+  window.location.reload(true);
 }

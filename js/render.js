@@ -1145,7 +1145,7 @@ function getPageModule(pg) {
         const am = document.getElementById('settingAiModel');
         if (am) am.value = data.settings?.financeAiModel || '';
         const ak = document.getElementById('settingAiKey');
-        if (ak) ak.value = data.settings?.financeAiKey || localStorage.getItem('financeAiKey') || '';
+        if (ak) ak.value = data.settings?.financeAiKey || storageService.get('v1:aiKey') || '';
         const su = document.getElementById('settingSyncUrl');
         if (su) su.value = data.settings?.syncServerUrl || '';
         const st = document.getElementById('settingSyncToken');

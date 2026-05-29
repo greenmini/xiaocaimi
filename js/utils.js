@@ -205,7 +205,7 @@ function updateThemeBtn() {
 }
 
 function initTheme() {
-  if (localStorage.getItem('financeTheme') === 'light') {
+  if (storageService.get('v1:theme') === 'light') {
     document.documentElement.classList.add('light');
   }
   updateThemeBtn();
@@ -213,7 +213,7 @@ function initTheme() {
 
 function toggleTheme() {
   document.documentElement.classList.toggle('light');
-  localStorage.setItem('financeTheme',
+  storageService.set('v1:theme',
     document.documentElement.classList.contains('light') ? 'light' : 'dark');
   updateThemeBtn();
 }

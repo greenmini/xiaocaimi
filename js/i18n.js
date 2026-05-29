@@ -131,6 +131,10 @@ const LOCALES = {
     filter: '筛选',
     record_list: '记录列表',
 
+    force_refresh: '强制刷新',
+    force_refresh_desc: '清除浏览器缓存和 Service Worker，强制加载最新版本。不影响已保存的数据。',
+    force_refresh_btn: '强制刷新',
+
     // 回收站
     trash_empty: '回收站为空',
     deleted_records: '已删除的记录',
@@ -280,6 +284,10 @@ const LOCALES = {
     filter: 'Filter',
     record_list: 'Records',
 
+    force_refresh: 'Force Refresh',
+    force_refresh_desc: 'Clear browser cache and Service Worker to load the latest version. Your data will not be affected.',
+    force_refresh_btn: 'Force Refresh',
+
     trash_empty: 'Trash is empty',
     deleted_records: 'Deleted Items',
     empty_trash: 'Empty Trash',
@@ -309,7 +317,7 @@ const LOCALES = {
 let _locale = 'zh-CN';
 
 function getLocale() {
-  const saved = localStorage.getItem('financeLocale');
+  const saved = storageService.get('v1:locale');
   if (saved && LOCALES[saved]) return saved;
   return _locale;
 }
@@ -317,7 +325,7 @@ function getLocale() {
 function setLocale(lang) {
   if (!LOCALES[lang]) return;
   _locale = lang;
-  localStorage.setItem('financeLocale', lang);
+  storageService.set('v1:locale', lang);
   applyLocale(lang);
   updateLangBtn();
 }
