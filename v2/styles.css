@@ -235,6 +235,17 @@ textarea { min-height: 88px; resize: vertical; }
 }
 .primary { background: var(--accent); border-color: var(--accent); }
 .danger { color: #fecaca; border-color: rgba(239,68,68,.35); }
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 0;
+  width: 100%;
+  text-align: left;
+}
+.link-btn:hover { opacity: .8; }
 .grid {
   display: grid;
   gap: 14px;
@@ -277,10 +288,151 @@ textarea { min-height: 88px; resize: vertical; }
 }
 .span-2 { grid-column: span 2; }
 .span-4 { grid-column: 1 / -1; }
+.col-gap-16 { gap: 16px; }
 .empty {
   color: var(--dim);
   text-align: center;
   padding: 24px 8px;
+}
+
+.account-card {
+  position: relative;
+  margin-bottom: 2px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: rgba(255,255,255,.015);
+}
+.account-card:last-child { margin-bottom: 0; }
+.account-card-bar {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: var(--accent);
+  opacity: .12;
+  border-radius: var(--radius);
+  transition: width .4s ease;
+}
+.account-card-main {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  gap: 12px;
+}
+.account-card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.account-card-type {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.account-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-card-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+.account-card-amount {
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 700;
+}
+.account-card-amount.positive { color: var(--green); }
+.account-card-amount.negative { color: var(--red); }
+.account-card-amount.muted { color: var(--muted); }
+.account-card-share {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 1px;
+}
+
+.fund-card {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.fund-card:last-child { border-bottom: 0; }
+.fund-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fund-icon {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.fund-info { min-width: 0; }
+.fund-card-body {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding-left: 18px;
+}
+.fund-change {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.fund-change.positive { color: var(--green); }
+.fund-change.negative { color: var(--red); }
+
+.account-actions-panel { overflow: visible; }
+.actions-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.actions-head h3 { margin: 0 !important; }
+.actions-toggle {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.actions-toggle:hover { border-color: var(--line-2); color: var(--text); }
+
+.form-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 14px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.form-tab {
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color .15s, background .15s;
+}
+.form-tab:hover { color: var(--text); }
+.form-tab.active {
+  color: var(--text);
+  background: rgba(255,255,255,.06);
 }
 .analysis-grid { align-items: stretch; }
 .chart-card {

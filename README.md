@@ -6,17 +6,57 @@ XiaoCaiMi is a local-first personal finance and life-management dashboard for NA
 
 ## 功能 / Features
 
-- 核心财务：仪表盘、交易记录、账户资产、数据分析。
-- 生活管理：日历、任务、提醒、番茄专注、家务管理、购物、餐食。
-- 资料库：便签、联系人、生日提醒。
-- 本地优先：数据默认保存在本地，支持 Docker 持久化挂载。
-- PWA：支持安装到桌面。
+### 核心财务 / Core Finance
 
-- Core finance: dashboard, transactions, accounts, and analytics.
-- Life management: calendar, tasks, reminders, Pomodoro focus, chores, shopping, and meals.
-- Library: notes, contacts, and birthday reminders.
-- Local-first: data is stored locally by default with Docker volume persistence.
-- PWA: installable desktop experience.
+- 仪表盘：总资产、收支统计、预算状态、今日中心。
+- 账户资产：多类型账户（现金、银行卡、支付宝、微信、基金、股票、信用卡、负债），净值摘要 + 占比可视化。
+- 交易记录：收入 / 支出记账、多账户转账、余额调整、基金操作。
+- 数据分析：近 6 月趋势、收支对比、分类排行。
+
+### 生活管理 / Life Management
+
+- 家务管理：周期家务、成员分配、完成历史（折叠展示）、筛选统计。
+- 任务看板：待办 / 进行中 / 已完成三列拖拽。
+- 提醒中心：一次性 / 周期提醒、番茄专注联动。
+- 日历、购物清单、餐食计划。
+
+### 资料库 / Library
+
+- 便签、联系人、生日提醒。
+
+### 其他 / More
+
+- 本地优先：数据保存在浏览器 localStorage / Docker volume，无后端依赖也可离线使用。
+- PWA：一键安装到桌面，Service Worker 离线缓存。
+- 中英双语：一键切换界面语言。
+- 暗色主题：OLED 深色界面。
+
+---
+
+### Core Finance
+
+- Dashboard: total assets, income/expense, budget, and today's agenda.
+- Accounts: multi-type support (cash, bank, Alipay, WeChat, fund, stock, credit, debt) with net-worth summary and share visualization.
+- Transactions: income/expense, inter-account transfers, balance adjustments, and fund trades.
+- Analytics: 6-month trends, income vs expense, and category ranking.
+
+### Life Management
+
+- Chores: recurring household tasks, member assignment, expandable completion history, and filter/stats.
+- Tasks: Kanban-style board with drag-and-drop across three columns.
+- Reminders: one-time and recurring reminders, Pomodoro timer integration.
+- Calendar, Shopping Lists, and Meal Planning.
+
+### Library
+
+- Notes, Contacts, and Birthday Reminders.
+
+### More
+
+- Local-first: data persists in browser localStorage / Docker volume, fully works offline.
+- PWA: one-click install with Service Worker caching.
+- Bilingual: Chinese/English toggle.
+- Dark OLED-inspired interface.
 
 ## Docker
 

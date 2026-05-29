@@ -20,6 +20,7 @@ powershell -ExecutionPolicy Bypass -File tools/publish-dockerhub.ps1
 Docker 镜像构建和推送仍然单独执行，避免误 build / 误 push：
 
 ```bash
-docker build -t greenmini/xiaocaimi:latest .
+docker build -t greenmini/xiaocaimi:latest -t greenmini/xiaocaimi:v6.3 .
 docker push greenmini/xiaocaimi:latest
+docker push greenmini/xiaocaimi:v6.3
 ```

@@ -3,8 +3,10 @@ import { escapeHtml, html, readForm, today } from '../core/dom.js';
 import { t } from '../core/i18n.js';
 
 const FILTER_KEY = 'xiaocaimi:v2:choreFilters';
+const HISTORY_PREVIEW = 5;
 let modal = null;
 let selectedChoreId = null;
+let historyExpanded = false;
 
 const areas = ['kitchen', 'bathroom', 'bedroom', 'livingRoom', 'balcony', 'wholeHome', 'other'];
 const categories = ['daily', 'cleaning', 'organizing', 'maintenance', 'laundry', 'shopping', 'other'];
@@ -350,8 +352,9 @@ export function renderChores() {
 
     <div class="grid cols-2 chore-layout" style="margin-top:14px">
       <section class="card">
-        <h3>${t('completionHistory')}</h3>
-        ${history.length ? history.map(historyRow).join('') : `<div class="empty">${t('noData')}</div>`}
+        <h3>${t('completionHistory')}${history.length > HISTORY_PREVIEW ? ` · ${history.length} ${t('recordsUnit')}` : ''}</h3>
+        ${history.length ? history.slice(0, historyExpanded ? history.length : HISTORY_PREVIEW).map(historyRow).join('') : `<div class="empty">${t('noData')}</div>`}
+        ${history.length > HISTORY_PREVIEW ? `<button class="link-btn" data-action="toggle-history" style="margin-top:8px">${historyExpanded ? t('showLess') : (typeof t('showMoreHistory') === 'function' ? t('showMoreHistory')(history.length - HISTORY_PREVIEW) : t('showMoreHistory'))}</button>` : ''}
       </section>
       <section class="card">
         <h3>${t('localMembers')}</h3>
@@ -668,6 +671,11 @@ export function bindChoreActions(event) {
         if (chore.assigneeId === id) chore.assigneeId = 'unassigned';
       });
     });
+    return true;
+  }
+
+  if (action === 'toggle-history') {
+    historyExpanded = !historyExpanded;
     return true;
   }
 

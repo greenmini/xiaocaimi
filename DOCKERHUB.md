@@ -10,13 +10,15 @@ A local-first personal finance and life-management dashboard for NAS, home serve
 
 本版重点更新：
 
-- Docker Hub 介绍改为中英双语
-- 新增 GitHub 项目 README 与开源仓库说明
+- 账户资产页面重构：顶部新增净资产 / 总资产 / 总负债摘要，账户改为彩色类型卡片 + 占比条，表单收折到「快捷操作」栏，主次分明
+- 家务完成历史折叠：默认仅展示最近 5 条，超过时显示「展开剩余 N 条」，避免页面无限拉长
+- 项目清理：删除旧版本备份代码、遗留文档和临时文件，项目结构精简至纯生产版本
 
 Highlights:
 
-- Updated the Docker Hub description with bilingual Chinese and English content.
-- Added the GitHub README and open-source repository description.
+- Accounts page redesign: net worth / assets / liabilities summary bar, color-coded account cards with share bars, collapsible action forms with tab switching
+- Chore completion history collapsible: shows only latest 5 entries by default, with expand/collapse toggle
+- Codebase cleanup: removed legacy backups, old server scripts, debug files, and temp descriptors — production-only structure
 
 ## 功能模块 / Modules
 

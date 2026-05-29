@@ -16,6 +16,8 @@ const accountTypes = [
   { value: 'other', labelKey: 'other' },
 ];
 const liabilityTypes = new Set(['credit', 'debt']);
+let accountFormsExpanded = false;
+let accountFormTab = 'new';
 
 function monthKey(offset = 0) {
   const now = new Date();
@@ -426,65 +428,124 @@ export function renderAccounts() {
   const state = getState();
   syncLedgerBalances(state);
   const { assets, funds } = state.finance;
+  const totalAssets = money(assets.reduce((sum, item) => sum + (isLiability(item.type) ? 0 : money(item.amount)), 0));
+  const totalLiabilities = money(assets.reduce((sum, item) => sum + (isLiability(item.type) ? money(item.amount) : 0), 0));
+  const netWorth = money(totalAssets - totalLiabilities);
+  const maxAsset = Math.max(...assets.map(a => Math.abs(accountNetValue(a))), 1);
+
   return html`
-    <section class="card">
-      <h3>${t('newAccount')}</h3>
-      <form data-action="add-asset" class="form-grid">
-        <div class="field span-2"><label>${t('name')}</label><input name="name" required></div>
-        <div class="field"><label>${t('amount')}</label><input name="amount" type="number" step="0.01" required></div>
-        <div class="field"><label>${t('type')}</label><select name="type">${accountTypes.map(type => `<option value="${type.value}">${t(type.labelKey)}</option>`).join('')}</select></div>
-        <button class="primary span-4">${t('saveAccount')}</button>
-      </form>
-    </section>
-    <section class="card" style="margin-top:14px">
-      <h3>${t('adjustBalance')}</h3>
-      <form data-action="adjust-account" class="form-grid">
-        <div class="field"><label>${t('account')}</label><select name="accountId">${accountOptions(assets)}</select></div>
-        <div class="field"><label>${t('newBalance')}</label><input name="balance" type="number" step="0.01" required></div>
-        <div class="field"><label>${t('date')}</label><input name="date" type="date" value="${today()}"></div>
-        <div class="field"><label>${t('note')}</label><input name="note" placeholder="${t('optional')}"></div>
-        <button class="primary span-4">${t('saveAdjustment')}</button>
-      </form>
-    </section>
-    <section class="card" style="margin-top:14px">
-      <h3>${t('fundOperation')}</h3>
-      <form data-action="fund-operation" class="form-grid">
-        <div class="field"><label>${t('type')}</label><select name="operation"><option value="fundBuy">${t('fundBuy')}</option><option value="fundSell">${t('fundSell')}</option></select></div>
-        <div class="field"><label>${t('fundAssets')}</label><select name="fundId"><option value="">${t('newFund')}</option>${fundOptions(funds)}</select></div>
-        <div class="field span-2"><label>${t('fundName')}</label><input name="fundName" placeholder="${t('optional')}"></div>
-        <div class="field"><label>${t('amount')}</label><input name="amount" type="number" step="0.01" required></div>
-        <div class="field"><label>${t('account')}</label><select name="accountId">${accountOptions(assets)}</select></div>
-        <div class="field"><label>${t('date')}</label><input name="date" type="date" value="${today()}"></div>
-        <div class="field"><label>${t('note')}</label><input name="note" placeholder="${t('optional')}"></div>
-        <button class="primary span-4">${t('saveFundOperation')}</button>
-      </form>
-    </section>
-    <div class="grid cols-2" style="margin-top:14px">
+    <div class="grid cols-3 col-gap-16">
+      ${metricCard(t('netWorth'), currency(netWorth), netWorth >= 0 ? 'positive' : 'negative')}
+      ${metricCard(t('totalAssets'), currency(totalAssets), 'positive')}
+      ${metricCard(t('totalLiabilities'), totalLiabilities > 0 ? currency(-totalLiabilities) : '0', totalLiabilities > 0 ? 'negative' : 'muted')}
+    </div>
+
+    <div class="grid cols-2 col-gap-16" style="margin-top:16px">
       <section class="card">
         <h3>${t('accountAssets')}</h3>
-        ${assets.map(accountRow).join('') || `<div class="empty">${t('noAccounts')}</div>`}
+        ${assets.length ? assets.map(a => accountCard(a, maxAsset, netWorth)).join('') : `<div class="empty">${t('noAccounts')}</div>`}
       </section>
       <section class="card">
         <h3>${t('fundAssets')}</h3>
-        ${funds.map(fund => {
+        ${funds.length ? funds.map(fund => {
           const profit = money(fund.value) - money(fund.cost);
-          return `<div class="row"><div><div class="list-title">${escapeHtml(fund.name)}</div><div class="dim">${t('fundCost')} ${currency(fund.cost)}</div></div><div class="amount ${profit >= 0 ? 'positive' : 'negative'}">${currency(fund.value)}</div></div>`;
-        }).join('') || `<div class="empty">${t('noFunds')}</div>`}
+          const profitPct = fund.cost > 0 ? Math.round((profit / money(fund.cost)) * 100) : 0;
+          return `<div class="fund-card">
+            <div class="fund-card-head">
+              <div class="fund-icon"></div>
+              <div class="fund-info">
+                <div class="list-title">${escapeHtml(fund.name)}</div>
+                <div class="dim">${t('fundCost')} ${currency(fund.cost)}</div>
+              </div>
+            </div>
+            <div class="fund-card-body">
+              <div class="amount ${profit >= 0 ? 'positive' : 'negative'}">${currency(fund.value)}</div>
+              <span class="fund-change ${profit >= 0 ? 'positive' : 'negative'}">${profit >= 0 ? '+' : ''}${currency(profit)} (${profitPct >= 0 ? '+' : ''}${profitPct}%)</span>
+            </div>
+          </div>`;
+        }).join('') : `<div class="empty">${t('noFunds')}</div>`}
       </section>
     </div>
+
+    <section class="card account-actions-panel" style="margin-top:16px">
+      <div class="actions-head" data-action="toggle-account-forms">
+        <h3>${t('quickActions')}</h3>
+        <button class="actions-toggle" data-action="toggle-account-forms">${accountFormsExpanded ? t('collapseForms') : t('expandForms')}</button>
+      </div>
+      ${accountFormsExpanded ? html`
+        <div class="form-tabs">
+          <button class="form-tab ${accountFormTab === 'new' ? 'active' : ''}" data-action="set-account-tab" data-tab="new">${t('newAccount')}</button>
+          <button class="form-tab ${accountFormTab === 'adjust' ? 'active' : ''}" data-action="set-account-tab" data-tab="adjust">${t('adjustBalance')}</button>
+          <button class="form-tab ${accountFormTab === 'fund' ? 'active' : ''}" data-action="set-account-tab" data-tab="fund">${t('fundOperation')}</button>
+        </div>
+        ${accountFormTab === 'new' ? html`
+          <form data-action="add-asset" class="form-grid" style="margin-top:12px">
+            <div class="field span-2"><label>${t('name')}</label><input name="name" required></div>
+            <div class="field"><label>${t('amount')}</label><input name="amount" type="number" step="0.01" required></div>
+            <div class="field"><label>${t('type')}</label><select name="type">${accountTypes.map(type => `<option value="${type.value}">${t(type.labelKey)}</option>`).join('')}</select></div>
+            <button class="primary span-4">${t('saveAccount')}</button>
+          </form>
+        ` : ''}
+        ${accountFormTab === 'adjust' ? html`
+          <form data-action="adjust-account" class="form-grid" style="margin-top:12px">
+            <div class="field"><label>${t('account')}</label><select name="accountId">${accountOptions(assets)}</select></div>
+            <div class="field"><label>${t('newBalance')}</label><input name="balance" type="number" step="0.01" required></div>
+            <div class="field"><label>${t('date')}</label><input name="date" type="date" value="${today()}"></div>
+            <div class="field"><label>${t('note')}</label><input name="note" placeholder="${t('optional')}"></div>
+            <button class="primary span-4">${t('saveAdjustment')}</button>
+          </form>
+        ` : ''}
+        ${accountFormTab === 'fund' ? html`
+          <form data-action="fund-operation" class="form-grid" style="margin-top:12px">
+            <div class="field"><label>${t('type')}</label><select name="operation"><option value="fundBuy">${t('fundBuy')}</option><option value="fundSell">${t('fundSell')}</option></select></div>
+            <div class="field"><label>${t('fundAssets')}</label><select name="fundId"><option value="">${t('newFund')}</option>${fundOptions(funds)}</select></div>
+            <div class="field span-2"><label>${t('fundName')}</label><input name="fundName" placeholder="${t('optional')}"></div>
+            <div class="field"><label>${t('amount')}</label><input name="amount" type="number" step="0.01" required></div>
+            <div class="field"><label>${t('account')}</label><select name="accountId">${accountOptions(assets)}</select></div>
+            <div class="field"><label>${t('date')}</label><input name="date" type="date" value="${today()}"></div>
+            <div class="field"><label>${t('note')}</label><input name="note" placeholder="${t('optional')}"></div>
+            <button class="primary span-4">${t('saveFundOperation')}</button>
+          </form>
+        ` : ''}
+      ` : ''}
+    </section>
   `;
 }
 
-function accountRow(account) {
-  const signedAmount = money(account.amount) * (isLiability(account.type) ? -1 : 1);
-  const amountTone = signedAmount < 0 ? 'negative' : 'positive';
+const ACCOUNT_COLORS = {
+  cash: '#85b8a3',
+  bank: '#8e95d8',
+  alipay: '#5b9bd5',
+  wechat: '#6fbf73',
+  fund: '#c49b8f',
+  stock: '#e8a87c',
+  medical: '#7ec8c8',
+  credit: '#d49595',
+  debt: '#c9a87c',
+  other: '#94a3b8',
+};
+
+function accountCard(account, max, netWorth) {
+  const signedAmount = accountNetValue(account);
+  const absAmount = Math.abs(signedAmount);
+  const amountTone = isLiability(account.type) ? 'negative' : (signedAmount > 0 ? 'positive' : 'muted');
+  const prefix = isLiability(account.type) ? '-' : '';
+  const barRatio = max > 0 ? (absAmount / max) : 0;
+  const accent = ACCOUNT_COLORS[account.type] || ACCOUNT_COLORS.other;
+
   return html`
-    <div class="row">
-      <div>
-        <div class="list-title">${escapeHtml(account.name)}</div>
-        <div class="dim">${accountTypeLabel(account.type)} · ${isLiability(account.type) ? t('debt') : t('asset')}</div>
+    <div class="account-card" style="--accent:${accent}">
+      <div class="account-card-bar" style="width:${Math.max(barRatio * 100, 4)}%"></div>
+      <div class="account-card-main">
+        <div class="account-card-left">
+          <span class="account-card-type" style="background:${accent}18;color:${accent}">${accountTypeLabel(account.type)}</span>
+          <span class="account-card-name">${escapeHtml(account.name)}</span>
+        </div>
+        <div class="account-card-right">
+          <div class="account-card-amount ${amountTone}">${prefix}${currency(absAmount)}</div>
+          ${netWorth > 0 ? `<div class="account-card-share">${Math.round((absAmount / Math.abs(netWorth)) * 100)}%</div>` : ''}
+        </div>
       </div>
-      <div class="amount ${amountTone}">${signedAmount < 0 ? '-' : ''}${currency(Math.abs(signedAmount))}</div>
     </div>
   `;
 }
@@ -810,6 +871,15 @@ export function bindFinanceActions(event) {
       state.finance.transactions.splice(index, 1);
       syncLedgerBalances(state);
     });
+    return true;
+  }
+
+  if (action === 'toggle-account-forms') {
+    accountFormsExpanded = !accountFormsExpanded;
+    return true;
+  }
+  if (action === 'set-account-tab') {
+    accountFormTab = actionTarget.dataset.tab || 'new';
     return true;
   }
 
